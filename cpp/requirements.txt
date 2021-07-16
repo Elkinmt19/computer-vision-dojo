@@ -1,0 +1,2 @@
+cmake >= 3.0.0
+VisualStudioBuildTools == 2019 Release - x86_amd64
