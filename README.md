@@ -2,9 +2,9 @@
 
 This repository was created to learn and gain new knowledge about computer vision and all its possible applications in the field of robotics and smart systems. <br>  
  <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/giphy.gif"
-      width="400"/>
+      width="420"/>
  <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/cv-people.gif"
-      width="400"/>
+      width="420"/>
 
 ## SOFTWARE DEPENDENCIES :computer:
 ### PYTHON DEPENDENCIES
