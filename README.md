@@ -1,10 +1,11 @@
 # <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/robotboy_fly.gif"/> THE COMPUTER VISION DOJO <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/robotboy_fly.gif"/>
+
+This repository was created to learn and gain new knowledge about computer vision and all its possible applications in the field of robotics and smart systems. <br>  
  <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/giphy.gif"
       width="450"/>
  <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/cv-people.gif"
       width="450"/>
 
-This repository was created to learn and gain new knowledge about computer vision and all its possible applications in the field of robotics and smart systems. <br>  
 ## SOFTWARE DEPENDENCIES :computer:
 ### PYTHON DEPENDENCIES
 * [Python](https://www.python.org/) <br>
