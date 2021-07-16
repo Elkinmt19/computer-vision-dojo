@@ -1,11 +1,8 @@
-<img src="assets/imgs/robotboy_fly.gif>"
-    alt="Home Screen"
-    style="float: left; margin-right: 10px"
-    width="100"/> # THE COMPUTER VISION DOJO 
-    <img src="assets/imgs/robotboy_fly.gif>"
-    alt="Home Screen"
-    style="float: left; margin-right: 10px"
-    width="100"/>
+# <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/robotboy_fly.gif"/> THE COMPUTER VISION DOJO <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/robotboy_fly.gif"/>
+ <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/giphy.gif"
+      width="450"/>
+ <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/cv-people.gif"
+      width="450"/>
 
 This repository was created to learn and gain new knowledge about computer vision and all its possible applications in the field of robotics and smart systems. <br>  
 ## SOFTWARE DEPENDENCIES :computer:
@@ -31,7 +28,7 @@ CMake is an open-source, cross-platform family of tools designed to build, test 
 
 ## AUTHOR
 
-## Elkin Javier Guerra Galeano :space_invader:
+## Elkin Javier Guerra Galeano <img src="https://github.com/Elkinmt19/computer-vision-dojo/blob/main/assets/imgs/robotboy_fly.gif"/>
 
 Student of Mechatronics Engineering at EIA University, excited for integrating Software and Hardware systems. <br>
 He is curious about Control Theory and implementing Robotics Solutions with different math designs. <br>
