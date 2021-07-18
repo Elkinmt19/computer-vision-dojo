@@ -1,5 +1,15 @@
-# Others imports 
+# Built-int imports
+import os
+
+# External imports 
 import cv2 as cv
+
+# My Own imports
+import get_path_assests_folder as gpaf
+
+# Get assets folder in repo for the samples
+ASSETS_FOLDER = gpaf.get_assets_folder_path()
+
 
 def load_image(path, mode):
     return (cv.imread(path, mode))
@@ -17,11 +27,12 @@ def get_pixel_image(img):
             print(img[i,j])
 
 def main():
-    colorImage = load_image("python/assets/imgs/Tony_Stark.jpeg", 1)
+    image_relative_path = os.path.join(
+        ASSETS_FOLDER, "imgs", "Tony_Stark.jpeg")
+    colorImage = load_image(image_relative_path, 1)
     show_image("Tony Stark", colorImage)
-    get_pixel_image(colorImage)
+    #get_pixel_image(colorImage)
     cv.waitKey(0)
-    colorImage()
 
 
 if __name__ == '__main__':
