@@ -152,8 +152,9 @@ def main():
     """
     arg_fmt = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=arg_fmt,
-                                     description=main.__doc__,
-                                     epilog=epilog)
+        description=main.__doc__,
+        epilog=epilog
+    )
     required = parser.add_argument_group('required arguments')
     required.add_argument(
         '-s', '--stage', dest='stage', required=True, choices=[
@@ -172,7 +173,7 @@ def main():
 
     if args.dimensions != None:
         dimen = [int(x) for x in args.dimensions]
-        
+
     print("Initializing program... ")
     dolphin = DolphinPlayingWithPixels()
 
