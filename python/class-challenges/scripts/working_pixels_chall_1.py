@@ -1,5 +1,7 @@
 # Built-int imports 
 import os
+import sys
+import argparse
 
 # External imports
 import cv2 as cv
@@ -139,9 +141,59 @@ class DolphinPlayingWithPixels:
 
 
 def main():
+    """COMPUTER VISION - EIA UNIVERSITY
+    First challenge of the EIA University's computer vision class.
+    Run this scripts in order to see Elkin Guerra's solucion 
+    of this test. 
+    """
+    epilog = """
+    Related examples:
+    More to come...
+    """
+    arg_fmt = argparse.RawDescriptionHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=arg_fmt,
+                                     description=main.__doc__,
+                                     epilog=epilog)
+    required = parser.add_argument_group('required arguments')
+    required.add_argument(
+        '-s', '--stage', dest='stage', required=True, choices=[
+            "one","two","tree","four","five"
+        ],
+        help='The stage of the challenge you want to execute'
+    )
+
+    parser.add_argument(
+        '-d', '--dimensions', dest='dimensions', required=False, nargs='+',
+        help='Height and Weidth for the squares of the mosaic'
+    )
+
+
+    args = parser.parse_args()
+
+    if args.dimensions != None:
+        dimen = [int(x) for x in args.dimensions]
+        
+    print("Initializing program... ")
     dolphin = DolphinPlayingWithPixels()
-    dolphin.dolphin_colorfull_by_user(50,15)
+
+    try:
+        act = args.stage
+        if act == "one":
+            dolphin.dolphin_channels()
+        elif act == "two":
+            dolphin.dolphin_y_reverse()
+        elif act == "tree":
+            dolphin.dolphin_x_reverse()
+        elif act == "four":
+            dolphin.dolphin_colorfull()
+        elif act == "five":
+            dolphin.dolphin_colorfull_by_user(dimen[0],dimen[1])
+            
+    except:
+        print("ERROR JUST HAPPEND")
+
+    return 0
 
 
 if __name__=='__main__':
-    main()
+    sys.exit(main())
