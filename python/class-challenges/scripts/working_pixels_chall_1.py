@@ -13,6 +13,11 @@ ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 
 class DolphinPlayingWithPixels:
+    """
+    Python class that has all the necessary methods to solve the first challenge
+    of the EIA University's class of computer vision, the chanllenges was just some
+    exercises to play with the pixels of an image.
+    """
     def __init__(self):
         self.__delfin_path = self.get_image_path()
         self.image = cv.imread(self.__delfin_path, 1)
@@ -32,6 +37,9 @@ class DolphinPlayingWithPixels:
         cv.imshow(f"New dolphin channel: {channel}", new_image)
     
     def dolphin_channels(self):
+        """
+        Method to show an image in its tree channels (Red, Green, Blue).
+        """
         cv.imshow("Original dolphin", self.image)
         for i in iter(range(3)):
             self.dolphin_separated(i)
@@ -39,6 +47,9 @@ class DolphinPlayingWithPixels:
         cv.destroyAllWindows()
 
     def dolphin_y_reverse(self):
+        """
+        Method for creating a mirror image on the y-axis.
+        """
         new_image = cv.imread(self.__delfin_path, 1)
 
         for i in iter(range(self.__rows)):
@@ -51,6 +62,9 @@ class DolphinPlayingWithPixels:
         cv.destroyAllWindows()
 
     def dolphin_x_reverse(self):
+        """
+        Method for creating a mirror image on the x-axis.
+        """
         new_image = cv.imread(self.__delfin_path, 1)
 
         for j in iter(range(self.__cols)):
@@ -63,6 +77,9 @@ class DolphinPlayingWithPixels:
         cv.destroyAllWindows()
 
     def dolphin_colorfull(self):
+        """
+        Method to created an image in a RBG mosaic with 4 squares.
+        """
         new_image = cv.imread(self.__delfin_path, 1)
 
         for (i,j,c), _ in np.ndenumerate(new_image):
@@ -78,26 +95,41 @@ class DolphinPlayingWithPixels:
         cv.destroyAllWindows()
 
     def dolphin_colorfull_by_user(self, px, py):
+        """
+        Method to create an image in an RGB mosaic, considering the width and the 
+        height values entered by the user.
+
+        :param px: height of the squares of the mosaic
+        :para, py: weidth of the squares of the mosaic
+        """
         new_image = cv.imread(self.__delfin_path, 1)
-        
+        print(f"px: {px} and py: {py}")
         x_count , y_count, c_count = (0,0,0)
-        x_refe, y_refe = (0,0)
+        x_refe, y_refe, c_refe = (0,0,0)
         x_number = int(self.__rows/px)
         y_number = int(self.__cols/py)
         print(f"x_number: {x_number} y_number: {y_number}")
+
+        def validated_limits(count, limit):
+            if (count == limit):
+                return 0
+            return (count + 1)
 
         for i in iter(range(self.__rows)):
             x_count = i - x_refe
             for j in iter(range(self.__cols)):
                 y_count = j - y_refe
-                for c in iter(range(self.__channels)):
-                    if (x_count <= px and y_count <= py and c == c_count):
-                        new_image[i,j,c] = 255
-                    elif (x_count > px):
-                        x_refe = i
-                    elif (y_count > py):
-                        y_refe = j
-                        
+                if (x_count <= px and y_count <= py):
+                    new_image[i,j,c_count] = 255
+                if (j == self.__cols - 1):
+                    y_refe, c_count = (0,c_refe)
+                if (y_count > py):
+                    y_refe = j
+                    c_count = validated_limits(c_count,2)
+            if (x_count > px):
+                c_refe = validated_limits(c_refe,2)
+                x_refe = i        
+
         cv.imshow("Original dolphin", self.image)
         cv.imshow("Colorfull by user dolphin", new_image)
         cv.waitKey(0)
@@ -108,7 +140,7 @@ class DolphinPlayingWithPixels:
 
 def main():
     dolphin = DolphinPlayingWithPixels()
-    dolphin.dolphin_colorfull_by_user(150,150)
+    dolphin.dolphin_colorfull_by_user(50,15)
 
 
 if __name__=='__main__':
