@@ -57,7 +57,10 @@ def click_mouse():
         if print_flag:
             print(f"Location: ({coordenates})")
 
-            #! Fix the problem with negative-coordinates(Homework)
+            #! Fix the problem with negative-coordinates
+            for j in iter(range(coordenates.shape[1])):
+                coordenates[:,j] = np.sort(coordenates[:,j], 0)
+
             roiImage = resizeImage[
                 coordenates[0,0]:coordenates[1,0],
                 coordenates[0,1]:coordenates[1,1]
