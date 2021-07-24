@@ -50,3 +50,16 @@ srv_gen
 *_msgs/src/
 */src/**/cfg
 */*/src/**/*
+
+# pyenv
+.python-version
+
+# ------ ENVIRONMENT IGNORES -----
+# Environments
+.venv
+venv*
+venv.bak/
+ENV/
+
+# -------- VSCODE IGNORES ------
+.vscode
