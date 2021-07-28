@@ -1,7 +1,6 @@
 # Built-int imports 
 import os
 import sys
-import math
 import argparse
 
 # External imports
@@ -152,16 +151,39 @@ class CoinSegmentation:
             for j in iter(range(self.__cols)):
                 if (other_image[i,j] > 19 and other_image[i,j] < 171):
                     other_img_area += 1
+        
+        print(f"Number of coins - image(monedas2.jpg): {int(other_img_area/coin_size)}")
 
-        print(f"Number of coins: {int(other_img_area/coin_size)}")
+    def coin_connect_components(self):
+        image = self.__gray_image.copy()
 
+        for i in iter(range(self.__rows)):
+            for j in iter(range(self.__cols)):
+                if (image[i,j] > 19 and image[i,j] < 171):
+                    image[i,j] = 255
+                else:
+                    image[i,j] = 0
+        
+        num_labels, labels_im = cv.connectedComponents(image)
+        print(f"Number of components: {num_labels}")
 
+        label_hue = np.uint8(179*labels_im/np.max(labels_im))
+        blank_ch = 255*np.ones_like(label_hue)
+        labeled_img = cv.merge((label_hue, blank_ch, blank_ch))
 
+        # cvt to BGR for display
+        labeled_img = cv.cvtColor(labeled_img, cv.COLOR_HSV2BGR)
+
+        # set bg label to black
+        labeled_img[label_hue==0] = 0
+
+        cv.imshow('Coins in groups', labeled_img)
+        cv.waitKey()
 
 def main():
     coins = CoinSegmentation()
 
-    coins.group_coin_segmentation()
+    coins.coin_connect_components()
 
 
 
