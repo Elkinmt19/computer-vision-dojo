@@ -17,7 +17,10 @@ ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 class CoinSegmentation:
     """
-    
+    Python class that has all the necessary methods to solve the second challenge
+    of the EIA University's class of computer vision.
+    This is a python class that contains methods to perform proper color
+    segmentation and binarization on a coin image and also to play with other images.
     """
     def __init__(self):
         self.__coins_path = self.get_image_path("monedas.jpg")
