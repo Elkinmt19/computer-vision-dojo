@@ -15,7 +15,7 @@ import custom_plot as cplt
 ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 
-class CoinSegmentation:
+class ImageSegmentation:
     """
     Python class that has all the necessary methods to solve the second challenge
     of the EIA University's class of computer vision.
@@ -234,11 +234,71 @@ class CoinSegmentation:
         print(f"The average distance between the bars is: {sum(bar_dist)/len(bar_dist)}")
         cplt.create_plots(bar_number_plot,bar_dist,"BAR'S DISTANCES",'bar','pixels')
 
+    def coins_binarization(self):
+        """
+        This is a method that binarizes a serie of images of colombian coins.
+        """
+        images = [cv.imread(self.get_image_path(f"coins_db/coin_{x}.jpeg"),0) for x in iter(range(10))]
+
+        for img in images:
+            for i in iter(range(img.shape[0])):
+                for j in iter(range(img.shape[1])):
+                    if (img[i,j] > 1 and img[i,j] < 235):
+                        img[i,j] = 255
+                    else:
+                        img[i,j] = 0
+
+            print(img.shape)
+            cv.imshow("Coin", img)
+            cv.waitKey(0)
+
+
 
 def main():
-    coins = CoinSegmentation()
+    """COMPUTER VISION - EIA UNIVERSITY
+    Second challenge of the EIA University's computer vision class.
+    Run this scripts in order to see Elkin Guerra's solucion 
+    of this test. 
+    """
+    epilog = """
+    Related examples:
+    More to come...
+    """
+    arg_fmt = argparse.RawDescriptionHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=arg_fmt,
+        description=main.__doc__,
+        epilog=epilog
+    )
+    required = parser.add_argument_group('required arguments')
+    required.add_argument(
+        '-s', '--stage', dest='stage', required=True, choices=[
+            "one","two","tree","four","five"
+        ],
+        help='The stage of the challenge you want to execute'
+    )
 
-    coins.count_bars()
+    args = parser.parse_args()
+
+    print("Initializing program... ")
+    coins = ImageSegmentation()
+
+    try:
+        act = args.stage
+        if act == "one":
+            coins.group_coin_segmentation()
+        elif act == "two":
+            coins.coin_count()
+        elif act == "tree":
+            coins.coin_connect_components()
+        elif act == "four":
+            coins.count_bars()
+        elif act == "five":
+            coins.coins_binarization()
+            
+    except:
+        print("ERROR JUST HAPPEND")
+
+    return 0
 
 
 

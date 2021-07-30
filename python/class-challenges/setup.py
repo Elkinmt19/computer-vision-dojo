@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 setup(
 
     # Library name (same as "pip install ____")
-    name='class_challenges',
+    name='classchallenges',
 
     author='Elkin Guerra',
 
