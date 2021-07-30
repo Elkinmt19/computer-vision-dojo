@@ -10,6 +10,7 @@ from numpy.core.fromnumeric import size
 
 # My own imports 
 import get_path_assests_folder as gpaf
+import custom_plot as cplt
 
 # Get assets folder in repo for the samples
 ASSETS_FOLDER = gpaf.get_assets_folder_path()
@@ -26,6 +27,7 @@ class CoinSegmentation:
         self.__coins_path = self.get_image_path("monedas.jpg")
         self.__image = cv.imread(self.__coins_path, 1)
         self.__gray_image = cv.imread(self.__coins_path, 0)
+        self.__bars_gray_image = cv.imread(self.get_image_path("barras.png"),0)
         self.__rows, self.__cols, self.__channels = self.__image.shape
 
 
@@ -183,10 +185,42 @@ class CoinSegmentation:
         cv.imshow('Coins in groups', labeled_img)
         cv.waitKey()
 
+    def count_bars(self):
+        image = self.__bars_gray_image.copy()
+
+        row, cols = image.shape
+        bar_refe = image[int(row/2),0]
+        bar_number, dist_refe = (0,0)
+        bar_dist = list()
+        bar_number_plot = list()
+
+        for i in iter(range(row)):
+            for j in iter(range(cols)):
+                if (image[i,j] > 60 and image[i,j] < 200):
+                    image[i,j] = 150
+                elif (image[i,j] > 200):
+                    image[i,j] = 255
+                else:
+                    image[i,j] = 0
+
+        for k in iter(range(cols)):
+            dist_refe += 1
+            if (image[int(row/2),k] != bar_refe or k == (cols-1)):
+                bar_number += 1
+                bar_number_plot.append(bar_number)
+                bar_dist.append(dist_refe)                
+                dist_refe = 0
+            bar_refe = image[int(row/2),k]
+
+        print(f"The number of bars is: {bar_number}")
+        print(f"The average distance between the bars is: {sum(bar_dist)/len(bar_dist)}")
+        cplt.create_plots(bar_number_plot,bar_dist,"BAR'S DISTANCES",'bar','pixels')
+
+
 def main():
     coins = CoinSegmentation()
 
-    coins.coin_connect_components()
+    coins.count_bars()
 
 
 
