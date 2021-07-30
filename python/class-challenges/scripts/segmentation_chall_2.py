@@ -6,7 +6,6 @@ import argparse
 # External imports
 import cv2 as cv
 import numpy as np
-from numpy.core.fromnumeric import size
 
 # My own imports 
 import get_path_assests_folder as gpaf
@@ -52,6 +51,11 @@ class CoinSegmentation:
         )
 
     def color_segmentation(self):
+        """
+        This is a method to make the color segmentation of the image called
+        'monedas.jpg', the segmentation will be using six different trackbars
+        two per channel (blue, gree and red). 
+        """
         cv.namedWindow("Coins grup segmentation")
         self.create_trackbar("Blue-u", "Coins grup segmentation")
         self.create_trackbar("Blue-l","Coins grup segmentation")
@@ -109,6 +113,11 @@ class CoinSegmentation:
         cv.destroyAllWindows()
 
     def binarization(self):
+        """
+        This is a method to make the binarization of the image called
+        'monedas.jpg', this method will be using two different trackbars
+        and the image is gonna be load in gray scale from the start.
+        """
         cv.namedWindow("Coins binarization")
         self.create_trackbar("Gray-u","Coins binarization")
         self.create_trackbar("Gray-l","Coins binarization")
@@ -160,6 +169,11 @@ class CoinSegmentation:
         print(f"Number of coins - image(monedas2.jpg): {int(other_img_area/coin_size)}")
 
     def coin_connect_components(self):
+        """
+        This is a method that gets the number of coins that the image 
+        'monedas2.jpg' has using the information got from the processing of 
+        the image 'monedas.jpg'.
+        """
         image = self.__gray_image.copy()
 
         for i in iter(range(self.__rows)):
@@ -186,6 +200,10 @@ class CoinSegmentation:
         cv.waitKey()
 
     def count_bars(self):
+        """
+        This is a method that gets the number of bars that the image called
+        'barras.png' has and also calculates the distantes between the bars.
+        """
         image = self.__bars_gray_image.copy()
 
         row, cols = image.shape
