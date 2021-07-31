@@ -238,12 +238,12 @@ class ImageSegmentation:
         """
         This is a method that binarizes a serie of images of colombian coins.
         """
-        images = [cv.imread(self.get_image_path(f"coins_db/coin_{x}.jpeg"),0) for x in iter(range(10))]
+        images = [cv.imread(self.get_image_path(f"coins_db/coin_{x}.jpeg"),0) for x in iter(range(5))]
 
         for img in images:
             for i in iter(range(img.shape[0])):
                 for j in iter(range(img.shape[1])):
-                    if (img[i,j] > 1 and img[i,j] < 235):
+                    if (img[i,j] > 80 and img[i,j] < 236):
                         img[i,j] = 255
                     else:
                         img[i,j] = 0
