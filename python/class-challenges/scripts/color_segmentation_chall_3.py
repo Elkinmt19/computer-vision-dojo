@@ -1,7 +1,6 @@
 # Built-int imports 
 import os
 import sys
-import argparse
 
 # External imports
 import cv2 as cv
