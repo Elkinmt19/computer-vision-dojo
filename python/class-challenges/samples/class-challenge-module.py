@@ -17,7 +17,7 @@ image_relative_path = os.path.join(
         ASSETS_FOLDER, "imgs", "coins_db/coin_1.jpeg")
 img = cv.imread(image_relative_path,1)
 
-cv.imshow("test gray image", cv.cvtColor(img,cv.COLOR_RGB2GRAY))
+# cv.imshow("test gray image", cv.cvtColor(img,cv.COLOR_RGB2GRAY))
 
 # seg = igs.ImageSegmentation(img).binarization()
-seg = igs.ImageSegmentation(img).color_segmentation()
+seg = igs.ImageSegmentation(img).color_segmentation("HSV")

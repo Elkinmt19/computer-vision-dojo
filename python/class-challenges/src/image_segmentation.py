@@ -7,11 +7,22 @@ import numpy as np
 
 
 class ImageSegmentation:
+    """
+    This is a python class that was implemented to make image binarization 
+    and also to make image color segmentation in an easy way, this class 
+    has a method called binarization which takes a gray image and maps the 
+    best threshold to binarize it, and also has a method called color 
+    segmentation which does the same as binarization but using a BGR image or 
+    HSV image.
+    :param image: BGR-image to binarized or to make a color segmentation.
+    """
     def __init__(self, image):
         self.__image = image
-        self.__rows, self.__cols = image.shape[:2]
 
     def nothing(self,x):
+        """
+        nothing function that is necessary for the trackbar event
+        """
         pass
 
     def create_trackbar(self,name,title):
@@ -24,6 +35,10 @@ class ImageSegmentation:
         )
 
     def binarization(self):
+        """"
+        binarization method, this method takes an BGR image and finds the 
+        best threshold values in order to binarize it.
+        """
         cv.namedWindow("Image Binarization")
         self.create_trackbar("Gray-u","Image Binarization")
         self.create_trackbar("Gray-l","Image Binarization")
@@ -33,51 +48,58 @@ class ImageSegmentation:
         while(True):
             var_gray_upper = cv.getTrackbarPos("Gray-u","Image Binarization")
             var_gray_lower = cv.getTrackbarPos("Gray-l","Image Binarization")
-    
-            for i in iter(range(self.__rows)):
-                for j in iter(range(self.__cols)):
-                    if (var_gray_upper > image[i,j] and var_gray_lower < image[i,j]):
-                        image[i,j] = 255
-                    else:
-                        image[i,j] = 0
-                        
-            cv.imshow("Image Binarization", image)
+
+            bin_image = cv.inRange(image, var_gray_lower, var_gray_upper)            
+            cv.imshow("Image Binarization", bin_image)
             image = cv.cvtColor(self.__image, cv.COLOR_RGB2GRAY)
 
             if (cv.waitKey(1) & 0xFF == ord('q')):
                 break
         cv.destroyAllWindows()
 
-    def color_segmentation(self):
-        cv.namedWindow("Image Segmentation")
-        self.create_trackbar("Blue-u", "Image Segmentation")
-        self.create_trackbar("Blue-l","Image Segmentation")
-        self.create_trackbar("Green-u","Image Segmentation")
-        self.create_trackbar("Green-l","Image Segmentation")
-        self.create_trackbar("Red-u","Image Segmentation")
-        self.create_trackbar("Red-l","Image Segmentation")
+    def color_segmentation(self, image_format = "BGR"):
+        """
+        color_segmentation method, this method takes a BGR image or 
+        HSV image and finds the best threshold ni order to segmentate 
+        an object in the image.
+        """
+        reset_image = False
+        if (image_format == "HSV"):
+            track_variables = ["Hue", "Saturation", "Value"]
+            image = cv.cvtColor(self.__image, cv.COLOR_RGB2HSV)
+            reset_image = True
+        elif (image_format == "BGR"):
+            track_variables = ["Blue", "Green", "Red"]
+            image = self.__image.copy()
 
-        image = self.__image.copy()
+        cv.namedWindow("Image Segmentation")
+        for i in iter(range(3)):
+            self.create_trackbar(f"{track_variables[i]}-u", "Image Segmentation")
+            self.create_trackbar(f"{track_variables[i]}-l", "Image Segmentation")
+
+        format_variables = dict(zip(track_variables,[[0,0],[0,0],[0,0]]))
 
         while(True):
-            var_blue_upper = cv.getTrackbarPos("Blue-u", "Image Segmentation")
-            var_blue_lower = cv.getTrackbarPos("Blue-l", "Image Segmentation")
-            var_green_upper = cv.getTrackbarPos("Green-u", "Image Segmentation")
-            var_green_lower = cv.getTrackbarPos("Green-l", "Image Segmentation")
-            var_red_upper = cv.getTrackbarPos("Red-u", "Image Segmentation")
-            var_red_lower = cv.getTrackbarPos("Red-l", "Image Segmentation")
+            for j in iter(range(3)):
+                format_variables[track_variables[j]][0] = cv.getTrackbarPos(
+                    f"{track_variables[j]}-u",
+                    "Image Segmentation"
+                )
+                format_variables[track_variables[j]][1] = cv.getTrackbarPos(
+                    f"{track_variables[j]}-l",
+                    "Image Segmentation"
+                )
 
-            for i in iter(range(self.__rows)):
-                for j in iter(range(self.__cols)):
-                    if (var_blue_upper > image[i,j,0] and var_blue_lower < image[i,j,0] and \
-                        var_green_upper > image[i,j,1] and var_green_lower < image[i,j,1] and \
-                        var_red_upper > image[i,j,2] and var_red_lower < image[i,j,2]):
-                        image[i,j] = 255
-                    else:
-                        image[i,j] = 0
-                        
-            cv.imshow("Image Segmentation", image)
-            image = self.__image.copy()
+            var_upper = np.array([format_variables[k][0] for k in format_variables.keys()])
+            var_lower = np.array([format_variables[k][1] for k in format_variables.keys()])
+
+            bin_image = cv.inRange(image, var_lower, var_upper)            
+            cv.imshow("Image Segmentation", bin_image)
+            if (reset_image):
+                image = cv.cvtColor(self.__image, cv.COLOR_RGB2HSV)
+            else:
+                image = self.__image.copy()
+
 
             if (cv.waitKey(1) & 0xFF == ord('q')):
                 break
