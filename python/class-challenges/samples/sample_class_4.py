@@ -40,7 +40,7 @@ def plot_histogram(window, gray_image):
         cv.imshow(window,hist_image)
 
 
-def ajuste_gamma(image, gamma):
+def adjust_gamma(image, gamma):
     # build a lookup table mapping the pixel values [0, 255] to
     # their adjusted gamma values
     invGamma = 1.0 / gamma
@@ -59,37 +59,13 @@ def main():
     cv.imshow("BGR IMAGE", bgr_image)
     cv.imshow("GRAY IMAGE", gray_image)
     plot_histogram("ORIGINAL HISTOGRAM",gray_image)
+    
+    ret, img_bin = cv.threshold(gray_image, 210,255, cv.THRESH_BINARY)
+    img_gama = adjust_gamma(bgr_image,1.5)
+    cv.imshow("Gamma",img_gama)
     cv.waitKey()
     cv.destroyAllWindows()
-    
-    return 0
-    ret, img_bin = cv.threshold(gray_image, 210,255, cv.THRESH_BINARY)
-    img_gama = ajuste_gamma(bgr_image,1.5)
-    cv.imshow("Gamma",img_gama)
-    h,w = gray_image.shape[:2]
-    total = h*w
-    count = 0
-    #print (gray_image[0])
-    ## for y in range(h):
-    ## for x in range(w):
-    ##
-    ## #gray_image[y,x] = gray_image[y,x]*2
-    ## gray_image[y,x] = int(pow(gray_image[y,x],2)/np.max(gray_image))
-    ## if(gray_image[y,x] >255):
-    ## gray_image[y,x]=255
-    ## if (gray_image[y,x]<100 and gray_image[y,x]>60):
-    ## gray_image[y,x] = gray_image[y,x] + 30
-    ## #count = count + 1
-    ## if (gray_image[y,x]<=60 and gray_image[y,x]>20):
-    ## gray_image[y,x] = gray_image[y,x] + 10
 
-    mostrar_imagen("img_bin",img_bin)
-    #mostrar_imagen("Gris_New",gray_image)
-    #ret, img_bin2 = cv.threshold(gray_image, 210,255, cv.THRESH_BINARY)
-    #mostrar_imagen("img_bin2",img_bin2)
-    #print((count*100.0)/(1.0*total))
-    cv2.waitKey(0)
-    cerrar_ventana()
 
 if __name__=="__main__":
     sys.exit(main())
