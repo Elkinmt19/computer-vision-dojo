@@ -38,23 +38,30 @@ err_code,camera = sim.simxGetObjectHandle(
     sim.simx_opmode_blocking
 )
 
+returnCode, resolution, image = sim.simxGetVisionSensorImage(
+    clientID,
+    camera,
+    0,
+    sim.simx_opmode_streaming
+)
+
 # Define the speed
-speed = 0.1
+speed = 0.5
 
 # Move the motors
-# sim.simxSetJointTargetVelocity(
-#     clientID,
-#     motorWheel[0],
-#     speed,
-#     sim.simx_opmode_oneshot_wait
-# )
+sim.simxSetJointTargetVelocity(
+    clientID,
+    motorWheel[0],
+    speed,
+    sim.simx_opmode_oneshot_wait
+)
 
-# sim.simxSetJointTargetVelocity(
-#     clientID,
-#     motorWheel[1],
-#     speed,
-#     sim.simx_opmode_oneshot_wait
-# )
+sim.simxSetJointTargetVelocity(
+    clientID,
+    motorWheel[1],
+    speed,
+    sim.simx_opmode_oneshot_wait
+)
 
 while (True):
     _, resolution, image = sim.simxGetVisionSensorImage(
@@ -63,9 +70,14 @@ while (True):
         0,
         sim.simx_opmode_buffer
     )
-    
-    img = np.array(image, dtype = np.uint8)
-    cv.imshow("ImgCamera", img)
+    print(resolution)
+    if (len(resolution) > 1):
+        img = np.array(image, dtype = np.uint8)
+        img.resize([resolution[0], resolution[1], 3])
+        img = np.rot90(img,2)
+        img = np.fliplr(img)
+        img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
+        cv.imshow("ImgCamera", img)
     key = cv.waitKey(1) & 0xFF
     if key == 27:
         break
