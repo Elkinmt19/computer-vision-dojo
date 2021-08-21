@@ -34,9 +34,9 @@ class ImageAnalysis:
     def plot_histogram(self):
         """
         This is a method which allows to plot the histogram of a 
-        specific rgb image.
+        specific bgr image.
         """
-        gray_image = cv.cvtColor(self.image, cv.COLOR_RGB2GRAY)
+        gray_image = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
         # Define the dimensions of the plot
         wbins = 256
         hbins = 256

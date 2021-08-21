@@ -43,7 +43,7 @@ class ImageSegmentation:
         self.create_trackbar("Gray-u","Image Binarization")
         self.create_trackbar("Gray-l","Image Binarization")
 
-        image = cv.cvtColor(self.__image, cv.COLOR_RGB2GRAY)
+        image = cv.cvtColor(self.__image, cv.COLOR_BGR2GRAY)
 
         while(True):
             var_gray_upper = cv.getTrackbarPos("Gray-u","Image Binarization")
@@ -51,7 +51,6 @@ class ImageSegmentation:
 
             bin_image = cv.inRange(image, var_gray_lower, var_gray_upper)            
             cv.imshow("Image Binarization", bin_image)
-            image = cv.cvtColor(self.__image, cv.COLOR_RGB2GRAY)
 
             if (cv.waitKey(1) & 0xFF == ord('q')):
                 break
@@ -66,7 +65,7 @@ class ImageSegmentation:
         reset_image = False
         if (image_format == "HSV"):
             track_variables = ["Hue", "Saturation", "Value"]
-            image = cv.cvtColor(self.__image, cv.COLOR_RGB2HSV)
+            image = cv.cvtColor(self.__image, cv.COLOR_BGR2HSV)
             reset_image = True
         elif (image_format == "BGR"):
             track_variables = ["Blue", "Green", "Red"]
@@ -95,11 +94,6 @@ class ImageSegmentation:
 
             bin_image = cv.inRange(image, var_lower, var_upper)            
             cv.imshow("Image Segmentation", bin_image)
-            if (reset_image):
-                image = cv.cvtColor(self.__image, cv.COLOR_RGB2HSV)
-            else:
-                image = self.__image.copy()
-
 
             if (cv.waitKey(1) & 0xFF == ord('q')):
                 break

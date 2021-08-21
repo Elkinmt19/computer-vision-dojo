@@ -39,7 +39,7 @@ def main():
     colorImage = cv.imread(image_relative_path, 1)
 
     while True:
-        hsv_image = cv.cvtColor(colorImage, cv.COLOR_RGB2HSV)
+        hsv_image = cv.cvtColor(colorImage, cv.COLOR_BGR2HSV)
 
         cv.imshow("Fachada RGB - before", colorImage)
         cv.imshow("Fachada HSV - before", hsv_image)
