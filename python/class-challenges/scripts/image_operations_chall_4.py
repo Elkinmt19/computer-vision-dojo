@@ -10,7 +10,6 @@ import numpy as np
 
 # My own imports 
 import image_segmentation as imgs
-import image_analysis as imga
 import get_path_assests_folder as gpaf
 
 # Get assets folder in repo for the samples
