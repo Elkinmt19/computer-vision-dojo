@@ -18,6 +18,8 @@ class ImageSegmentation:
     """
     def __init__(self, image):
         self.__image = image
+        self.coordenates = np.array([[0,0],[0,0]])
+        self.print_flag = False
 
     def nothing(self,x):
         """
@@ -98,6 +100,47 @@ class ImageSegmentation:
             if (cv.waitKey(1) & 0xFF == ord('q')):
                 break
         cv.destroyAllWindows()
+
+    def __click_mouse_callback(self, event, y, x, flags, param):
+        """
+        Click-mouse callback function to use a click event
+        """
+        if (event == cv.EVENT_LBUTTONDOWN):
+            self.coordenates[0,0] = x
+            self.coordenates[0,1] = y
+
+        if (event == cv.EVENT_LBUTTONUP):
+            self.coordenates[1,0] = x
+            self.coordenates[1,1] = y
+            self.print_flag = True
+
+    def get_region_of_interest(self):
+        """
+        This a simple method which allows to get a specific region of
+        interest from an image.
+        """
+        cv.namedWindow("Source Image")
+        cv.setMouseCallback("Source Image", self.__click_mouse_callback)
+
+        print("Getting the region of interest...")
+        while (True):
+            cv.imshow("Source Image", self.__image)
+            if self.print_flag:
+                print(f"Location: ({self.coordenates})")
+
+                #! Fix the problem with negative-coordinates
+                for j in iter(range(self.coordenates.shape[1])):
+                    self.coordenates[:,j] = np.sort(self.coordenates[:,j], 0)
+
+                self.roiImage = self.__image[
+                    self.coordenates[0,0]:self.coordenates[1,0],
+                    self.coordenates[0,1]:self.coordenates[1,1]
+                ]
+
+                cv.imshow("Source Image - ROI",self.roiImage)
+                self.print_flag = False
+            if (cv.waitKey(1) & 0xFF == ord('q')):
+                break
 
 
 def main():
