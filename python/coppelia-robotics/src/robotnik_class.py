@@ -1,13 +1,21 @@
 # Built-in imports
 import sys 
 
-# External imports
+# External imports 
 import numpy as np
 
 # Own imports 
 import sim
 
 class RobotnikClass:
+    """
+    This is a python class which contains all the basic 
+    funtionalities of the Robotnik_Summit_XL140701 of the 
+    CoppeliaSim Edu software, this python class has methods
+    to make a specific velocity to the motors of the robot.
+    :params client: This is the client instance to connect with 
+    Coppelia server.
+    """
     def __init__(self, client):
         # Define client
         self.__client = client
@@ -50,6 +58,7 @@ class RobotnikClass:
             sim.simx_opmode_oneshot_wait
         )
 
+        # Define the camera's parameters
         _,self.camera = sim.simxGetObjectHandle(
             self.__client,
             "Vision_sensor",
@@ -64,6 +73,15 @@ class RobotnikClass:
         )
 
     def move_motors(self, right_vel = 0, left_vel = 0):
+        """
+        This is a method which allows to give a specific speed 
+        to each of the robot's motors, depending of the motor 
+        (right motors and left motors).
+        :param right_vel: Angular velocity of the right's motors
+        :param left_vel: Angular velocity of the left's motors
+        """
+
+        # Configuration of the left's motors parameters
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[0],
@@ -78,6 +96,7 @@ class RobotnikClass:
             sim.simx_opmode_oneshot_wait
         )
 
+        # Configuration of the right's motors parameters
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[1],
@@ -90,6 +109,18 @@ class RobotnikClass:
             self.motorWheel[3],
             -right_vel,
             sim.simx_opmode_oneshot_wait
+        )
+    
+    def camera_buffer(self):
+        """
+        This is a method which allows to get an image from the 
+        visual sensor of the CoppeliaSim Edu software.
+        """
+        _, self.resolution, self.image = sim.simxGetVisionSensorImage(
+            self.__client,
+            self.camera,
+            0,
+            sim.simx_opmode_buffer
         )
 
 
