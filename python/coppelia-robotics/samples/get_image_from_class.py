@@ -61,6 +61,7 @@ def main():
                     cv.drawContours(contour_image, cnt, -1, (255,0,0), 2)
                     cv.circle(contour_image, (cx,cy), 1, (0,255,0), 2)
             print(f"The x-distance is {CONST_INV/area} m")
+            print(f"orientation_setpoint: {cx}")
 
             cv.imshow("Binary Image", contour_image)
             cv.imshow("Original Image", img)
