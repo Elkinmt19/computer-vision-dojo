@@ -4,10 +4,10 @@ import sys
 # Own imports 
 import sim
 
-class RobotnikClass:
+class KukaYouBotClass:
     """
     This is a python class which contains all the basic 
-    funtionalities of the Robotnik_Summit_XL140701 of the 
+    funtionalities of the KUKA YouBot of the 
     CoppeliaSim Edu software, this python class has methods
     to make a specific velocity to the motors of the robot.
     :params client: This is the client instance to connect with 
@@ -16,45 +16,66 @@ class RobotnikClass:
     def __init__(self, client):
         # Define client
         self.__client = client
-        # Create motors
+        # Create motors of the movile robot
         self.motorWheel = [
             0,
             1,
             2,
             3
         ]
-        self.motorError = [
-            False,
-            False,
-            False,
-            False
-        ]
+        # Create joints of the manipulator robot
+        self.robot_joints = list()
+        self.robot_gripper = list()
 
-        # Define the motor's parameters
-        self.motorError[0], self.motorWheel[0] = sim.simxGetObjectHandle(
+        self.define_motors_movile_robot()
+
+        self.define_motors_manipulator_robot()
+
+        self.define_camera_sensor()
+
+    def define_motors_movile_robot(self):
+        # Define the movile robot motor's parameters
+        _, self.motorWheel[0] = sim.simxGetObjectHandle(
             self.__client,
-            "joint_back_left_wheel",
+            "rollingJoint_rl",
             sim.simx_opmode_oneshot_wait
         )
 
-        self.motorError[1], self.motorWheel[1] = sim.simxGetObjectHandle(
+        _, self.motorWheel[1] = sim.simxGetObjectHandle(
             self.__client,
-            "joint_back_right_wheel",
+            "rollingJoint_rr",
             sim.simx_opmode_oneshot_wait
         )
 
-        self.motorError[2], self.motorWheel[2] = sim.simxGetObjectHandle(
+        _, self.motorWheel[2] = sim.simxGetObjectHandle(
             self.__client,
-            "joint_front_left_wheel",
+            "rollingJoint_fl",
             sim.simx_opmode_oneshot_wait
         )
 
-        self.motorError[3], self.motorWheel[3] = sim.simxGetObjectHandle(
+        _, self.motorWheel[3] = sim.simxGetObjectHandle(
             self.__client,
-            "joint_front_right_wheel",
+            "rollingJoint_fr",
             sim.simx_opmode_oneshot_wait
         )
+    
+    def define_motors_manipulator_robot(self):
+        # Define the manipulator robot motor's parameters
+        for i in iter(range(5)):
+            self.robot_joints.append(sim.simxGetObjectHandle(
+                self.__client,
+                f"youBotArmJoint{i}",
+                sim.simx_opmode_oneshot_wait
+            ))
 
+        for i in iter(range(1,3)):
+            self.robot_gripper.append(sim.simxGetObjectHandle(
+                self.__client,
+                f"youBotGripperJoint{i}",
+                sim.simx_opmode_oneshot_wait
+            ))
+
+    def define_camera_sensor(self):
         # Define the camera's parameters
         _,self.camera = sim.simxGetObjectHandle(
             self.__client,
@@ -69,45 +90,6 @@ class RobotnikClass:
             sim.simx_opmode_streaming
         )
 
-    def move_motors(self, right_vel = 0, left_vel = 0):
-        """
-        This is a method which allows to give a specific speed 
-        to each of the robot's motors, depending of the motor 
-        (right motors and left motors).
-        :param right_vel: Angular velocity of the right's motors
-        :param left_vel: Angular velocity of the left's motors
-        """
-
-        # Configuration of the left's motors parameters
-        sim.simxSetJointTargetVelocity(
-            self.__client,
-            self.motorWheel[0],
-            left_vel,
-            sim.simx_opmode_oneshot_wait
-        )
-
-        sim.simxSetJointTargetVelocity(
-            self.__client,
-            self.motorWheel[2],
-            left_vel,
-            sim.simx_opmode_oneshot_wait
-        )
-
-        # Configuration of the right's motors parameters
-        sim.simxSetJointTargetVelocity(
-            self.__client,
-            self.motorWheel[1],
-            -right_vel,
-            sim.simx_opmode_oneshot_wait
-        )
-
-        sim.simxSetJointTargetVelocity(
-            self.__client,
-            self.motorWheel[3],
-            -right_vel,
-            sim.simx_opmode_oneshot_wait
-        )
-    
     def camera_buffer(self):
         """
         This is a method which allows to get an image from the 
@@ -120,6 +102,51 @@ class RobotnikClass:
             sim.simx_opmode_buffer
         )
 
+    def move_movile_robot_motors(self, wheels_velocity = [0,0,0,0]):
+        """
+        This is a method which allows to give a specific speed 
+        to each of the robot's motors, depending of the motor 
+        (right motors and left motors).
+        :param wheels_velocity which is a list with 4 values of 
+        velocity.
+            wheels_velocity = [
+                vel_left_r,
+                vel_right_r,
+                vel_left_f,
+                vel_right_f
+            ]
+        """
+
+        # Configuration of the left's motors parameters
+        sim.simxSetJointTargetVelocity(
+            self.__client,
+            self.motorWheel[0],
+            wheels_velocity[0],
+            sim.simx_opmode_oneshot_wait
+        )
+
+        sim.simxSetJointTargetVelocity(
+            self.__client,
+            self.motorWheel[2],
+            wheels_velocity[2],
+            sim.simx_opmode_oneshot_wait
+        )
+
+        # Configuration of the right's motors parameters
+        sim.simxSetJointTargetVelocity(
+            self.__client,
+            self.motorWheel[1],
+            wheels_velocity[1],
+            sim.simx_opmode_oneshot_wait
+        )
+
+        sim.simxSetJointTargetVelocity(
+            self.__client,
+            self.motorWheel[3],
+            wheels_velocity[3],
+            sim.simx_opmode_oneshot_wait
+        )
+    
 
 def main():
     # End connexion 
@@ -133,8 +160,8 @@ def main():
     else:
         print("Fatal error - No connexion")
 
-    robot = RobotnikClass(clientID)    
-    robot.move_motors(-2,2)
+    robot = KukaYouBotClass(clientID)    
+    robot.move_movile_robot_motors([0.1,0.1,0.1,0.1])
 
     # End connexion 
     sim.simxFinish(-1)  
