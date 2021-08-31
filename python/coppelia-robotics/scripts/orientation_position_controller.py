@@ -193,6 +193,8 @@ class OrientationPositionController:
 
                 self.robot.move_motors(right_vel, left_vel)
 
+                last_time = time.time()
+
             if (cv.waitKey(1) & 0xFF == ord('q')):
                 break
         
