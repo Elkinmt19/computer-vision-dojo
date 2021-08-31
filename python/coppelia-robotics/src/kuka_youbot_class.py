@@ -121,14 +121,14 @@ class KukaYouBotClass:
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[0],
-            wheels_velocity[0],
+            -wheels_velocity[0],
             sim.simx_opmode_oneshot_wait
         )
 
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[2],
-            wheels_velocity[2],
+            -wheels_velocity[2],
             sim.simx_opmode_oneshot_wait
         )
 
@@ -136,14 +136,14 @@ class KukaYouBotClass:
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[1],
-            wheels_velocity[1],
+            -wheels_velocity[1],
             sim.simx_opmode_oneshot_wait
         )
 
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[3],
-            wheels_velocity[3],
+            -wheels_velocity[3],
             sim.simx_opmode_oneshot_wait
         )
     
