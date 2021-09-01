@@ -14,11 +14,12 @@ ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 
 image_relative_path = os.path.join(
-        ASSETS_FOLDER, "imgs", "pills_1.png")
+        ASSETS_FOLDER, "imgs", "sample_cube_segmentation.png")
 img = cv.imread(image_relative_path,1)
+img = cv.resize(img, (440,280))
 
 # cv.imshow("test gray image", cv.cvtColor(img,cv.COLOR_RGB2GRAY))
 
 # seg = igs.ImageSegmentation(img).binarization()
-# seg = igs.ImageSegmentation(img).color_segmentation("HSV")
-roi_img = igs.ImageSegmentation(img).get_region_of_interest()
+seg = igs.ImageSegmentation(img).color_segmentation()
+# roi_img = igs.ImageSegmentation(img).get_region_of_interest()

@@ -61,6 +61,11 @@ class ConveyorChallenge:
         )
 
     def get_image_cube_camera(self):
+        """
+        This is a method which counts the number of cubes in the table, 
+        detects and segments the objects according their color and also 
+        verify the quality of these objects. 
+        """
         number_cubes = [0,0,0,0]
         faulty_cubes = [0,0,0,0]
 
@@ -128,6 +133,32 @@ class ConveyorChallenge:
     def cube_initial_diagnostic(self):
         self.cube_camera_buffer()
         self.get_image_cube_camera()
+
+    def movile_robot_model(self, vx, vy, w):
+        """
+        This is a method that implements the model of a Holonomic 
+        movile robot, this model that maps between the linear and 
+        angular velocity of the robot and the speed of the wheels.
+        """
+        
+        # Robot's parameters
+        L = 0.38578
+        l = 0.0
+        R = 0.116835
+
+        right_f_vel = (vx + vy - (L + l)*w)/R
+        left_f_vel = (-vx + vy + (L + l)*w)/R
+        right_b_vel = (-vx + vy + (L + l)*w)/R
+        left_b_vel = (vx + vy - (L + l)*w)/R
+
+        wheel_vel = [
+            left_b_vel,
+            right_b_vel,
+            left_f_vel,
+            right_f_vel
+        ]
+
+        return wheel_vel
 
 def main():
     conveyor_chall = ConveyorChallenge()
