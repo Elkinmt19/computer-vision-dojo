@@ -161,7 +161,7 @@ def main():
         print("Fatal error - No connexion")
 
     robot = KukaYouBotClass(clientID)    
-    robot.move_movile_robot_motors([0.1,0.1,0.1,0.1])
+    robot.move_movile_robot_motors([5,5,5,5])
 
     # End connexion 
     sim.simxFinish(-1)  
