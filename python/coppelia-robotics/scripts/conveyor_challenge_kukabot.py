@@ -5,7 +5,6 @@ import time
 # External imports 
 import cv2 as cv
 import numpy as np
-from numpy.lib.index_tricks import index_exp
 
 # Own imports 
 import sim
@@ -28,14 +27,17 @@ class ConveyorChallenge:
 
         # Define robot's parameters
         self.ready_to_go = False
+        self.safety_counter = 0
+        self.robot_target = 0
+        self.change_target = 0
         self.robot = kb.KukaYouBotClass(self.__clientID)
 
         # Control variables
-        self.__control_period = 0.0
-        self.__error = [0.0,0.0,0.0,0.0]
-        self.__amount_i_term = [0.0,0.0]
+        self.__control_period = 0.1
+        self.__error = [0.0,0.0,0.0,0.0,0.0,0.0]
+        self.__amount_i_term = [0.0,0.0,0.0]
         self.__orientation_setpoint = 0.0
-        self.__distance_setpoint = 0.5
+        self.__distance_setpoint = 0.08
 
         # Measurement variables
         self.area = 0.0
@@ -180,17 +182,20 @@ class ConveyorChallenge:
 
         binary_image = cv.inRange(img, LOWER_VALUES, UPPER_VALUES)
 
-        blur_image = cv.medianBlur(binary_image, 19)
+        kernelD = np.ones((5,9), np.uint8)
+        erode_image = cv.erode(binary_image, kernelD, iterations=2)
 
         # Find the contours of the image
         contours, hier = cv.findContours(
-            blur_image.copy(),
+            erode_image.copy(),
             cv.RETR_EXTERNAL,
             cv.CHAIN_APPROX_NONE
         )
 
-        if (len(contours) > 0):
+        if ((len(contours) > 0) and (self.safety_counter >= 329)):
             self.ready_to_go = True
+
+        self.safety_counter += 1
 
     def cube_package_diagnostic(self):
         self.cube_camera_buffer(1)
@@ -204,9 +209,9 @@ class ConveyorChallenge:
         """
         
         # Robot's parameters
-        L = 0.38578
-        l = 0.0
-        R = 0.116835
+        L = 0.23506600000000002
+        l = 0.104311
+        R = 0.049984
 
         right_f_vel = (vx + vy - (L + l)*w)/R
         left_f_vel = (-vx + vy + (L + l)*w)/R
@@ -235,11 +240,35 @@ class ConveyorChallenge:
         img = np.rot90(img,2)
         img = np.fliplr(img)
         img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
+        hsv_image = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
-        # Segmentation of the object
-        LOWER_VALUES = np.array([255, 0, 0])
-        UPPER_VALUES = np.array([255, 164, 129])
-        binary_image = cv.inRange(img, LOWER_VALUES, UPPER_VALUES)
+        # Umbral's values for the segmentation of the objects
+        LOWER_VALUES = np.array(
+            [
+                [83, 0, 55],
+                [39, 164, 92],
+                [23, 64, 68],
+                [0, 88, 88]
+            ]
+        )
+        UPPER_VALUES = np.array(
+            [
+                [136, 255, 255],
+                [78, 255, 209],
+                [52, 255, 207],
+                [2, 255, 250]
+            ]
+        )
+
+        if (self.change_target >= 8):
+            self.robot_target += 1
+            self.change_target = 0
+
+        binary_image = cv.inRange(
+            hsv_image,
+            LOWER_VALUES[self.robot_target],
+            UPPER_VALUES[self.robot_target]
+        )
 
         # Find the contours of the image
         contours, hier = cv.findContours(
@@ -251,7 +280,7 @@ class ConveyorChallenge:
         # Draw the comtours in the image
         contour_image = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
 
-        CONST_INV = 0.5265*54289.0
+        CONST_INV = 240
 
         for cnt in contours:
             self.area = cv.contourArea(cnt)
@@ -272,7 +301,61 @@ class ConveyorChallenge:
 
         return self.cx, self.distance
 
+    def orientation_pid_controller(self):
+        """
+        This method implements a simple PID controller in order 
+        to control the orientation of the robot in each moment of 
+        the simulation.
+        """
+
+        # Controller's parameters
+        KP = 0.6
+        KI = 0.0
+        KD = 0.001
+
+        p_term = self.__error[1]
+        i_term = self.__error[1]*self.__control_period + self.__amount_i_term[0]
+        d_term = (self.__error[1] - self.__error[0])/self.__control_period
+
+        vx = KP*p_term + KI*i_term + KD*d_term
+
+        self.__amount_i_term[0] += i_term
+        self.__error[0] = self.__error[1]
+
+        return vx
+
+    def distance_pid_controller(self):
+        """
+        This method implements a simple PID controller in order 
+        to control the distance between the robot and an external 
+        object in each moment of the simulation.
+        """
+
+        # Controller's parameters
+        KP = -1.0
+        KI = -0.0
+        KD = -0.03
+
+        p_term = self.__error[3]
+        i_term = self.__error[3]*self.__control_period + self.__amount_i_term[1]
+        d_term = (self.__error[3] - self.__error[2])/self.__control_period
+
+        vy = KP*p_term + KI*i_term + KD*d_term
+
+        self.__amount_i_term[1] += i_term
+        self.__error[2] = self.__error[3]
+
+        return vy
+
     def execute_control(self):
+        self.robot = kb.KukaYouBotClass(self.__clientID)
+        last_time = 0.0
+        vx = 0.0
+        vy = 0.0
+        # Only proceed to control calculation in correct sample time multiple
+        sample_time_condition = time.time() - last_time >= self.__control_period
+        # Camera condiction 
+        camera_condition = len(self.robot.resolution) > 1
         ready_to_go_stop = True
         self.cube_initial_diagnostic()
         while (True):
@@ -280,12 +363,36 @@ class ConveyorChallenge:
                 self.cube_package_diagnostic()
             if (self.ready_to_go):
                 if (ready_to_go_stop):
-                    time.sleep(15)
+                    self.safety_counter = 0
+                    time.sleep(5)
                     print("READY TO GO!!")
                     ready_to_go_stop = False
-                self.robot.move_movile_robot_motors([5,5,5,5])
                 self.robot.camera_buffer()
-                self.get_current_orientation_distance()
+                if (sample_time_condition and camera_condition):
+                    current_orientation, current_distance = self.get_current_orientation_distance()
+
+                    self.__error[1] = self.__orientation_setpoint - current_orientation
+                    self.__error[3] = self.__distance_setpoint - current_distance
+
+                    if (abs(self.__error[1]) > 0.05):
+                        vx = self.orientation_pid_controller()
+                    else:
+                        vx = 0
+                    if (abs(self.__error[3]) > 0.01 and (self.robot_target == 0)):
+                        vy = self.distance_pid_controller()
+                    else:
+                        vy = 0
+                    wheel_speed = self.movile_robot_model(vx, vy, 0)
+                    self.robot.move_movile_robot_motors(wheel_speed)
+
+                    if ((vx == 0) and (vy == 0)):
+                        self.change_target +=  1
+
+                    last_time = time.time()
+                if (cv.waitKey(1) & 0xFF == ord('q')):
+                    break
+        
+        self.stop_conextion()
 
 def main():
     conveyor_chall = ConveyorChallenge()

@@ -46,7 +46,7 @@ returnCode, resolution, image = sim.simxGetVisionSensorImage(
 )
 
 # Define the speed
-speed = 0.2
+speed = 0.0
 
 # Move the motors
 sim.simxSetJointTargetVelocity(
@@ -74,7 +74,7 @@ def getting_started_filters():
 
         kernelD = np.ones((5,9), np.uint8)
         kernelA = cv.getStructuringElement(cv.MORPH_RECT, (9,9))
-        kernelB = np.array([[1,1,1],[1,1,1][1,1,1]])
+        kernelB = np.array([[1,1,1],[1,1,1],[1,1,1]])
 
         if (len(resolution) > 1):
             img = np.array(image, dtype = np.uint8)
@@ -106,7 +106,7 @@ def getting_started_filters():
             # cv.imshow("Dilate Image",  dilate_image)
             # cv.imshow("Blur Image", blur_image)
             cv.imshow("Binary Image", binary_image)
-            cv.imshow("Erode Image", binary_image)
+            cv.imshow("Erode Image", erode_image)
         key = cv.waitKey(1) & 0xFF
         if key == 27:
             break
@@ -165,7 +165,8 @@ def getting_started_contours():
 
 
 
-getting_started_contours()
+# getting_started_contours()
+getting_started_filters()
 
 
 # End connexion 
