@@ -11,6 +11,11 @@ import sim
 import kuka_youbot_class as kb
 
 class ConveyorChallenge:
+    """
+    This is a python class which contains methods that are important 
+    to solve the conveyor challenge of the computer vision class of
+    the EIA University.
+    """
     def __init__(self):
         # Define camera's parameters
         self.cube_camera = [None, None]
@@ -31,6 +36,11 @@ class ConveyorChallenge:
         self.robot_target = 0
         self.change_target = 0
         self.robot = kb.KukaYouBotClass(self.__clientID)
+
+        # Define cubes and floor parameters
+        self.cubes = [None, None, None, None, None]
+        self.floor = None
+        self.define_cubes_floor()
 
         # Control variables
         self.__control_period = 0.1
@@ -88,6 +98,50 @@ class ConveyorChallenge:
             0,
             sim.simx_opmode_buffer
         )
+
+    def define_cubes_floor(self):
+        cube_names = ["Cuboid9", "Cuboid4", "Cuboid6", "Cuboid7", "Cuboid5"]
+        for i in iter(range(5)):
+            _, self.cubes[i] = sim.simxGetObjectHandle(
+                self.__clientID,
+                cube_names[i],
+                sim.simx_opmode_oneshot_wait
+            )
+        _, self.floor = sim.simxGetObjectHandle(
+                self.__clientID,
+                "Floor",
+                sim.simx_opmode_oneshot_wait
+            )
+
+    def move_cube(self, cube):
+        position = np.array(
+            [
+                [-0.2250,-1.3250,0.0925],
+                [-0.2250,-0.8250,0.0925],
+                [-0.2250,-1.3250,0.0925],
+                [-0.2250,0.3000,0.0925],
+                [-0.2250,-0.2750,0.0925],
+            ]
+        )
+        sim.simxSetObjectPosition(
+            self.__clientID,
+            self.cubes[cube],
+            self.floor,
+            position[cube],
+            sim.simx_opmode_oneshot_wait
+    )
+
+    def move_cubes_to_conveyor(self):
+        origin_conveyor = [-1.0000e+00,7.5000e-01,2.7500e-01]
+        for i in iter(range(5)):
+            sim.simxSetObjectPosition(
+                self.__clientID,
+                self.cubes[i],
+                self.floor,
+                origin_conveyor,
+                sim.simx_opmode_oneshot_wait
+            )
+            time.sleep(4)
 
     def get_image_cube_camera(self):
         """
@@ -192,7 +246,7 @@ class ConveyorChallenge:
             cv.CHAIN_APPROX_NONE
         )
 
-        if ((len(contours) > 0) and (self.safety_counter >= 329)):
+        if ((len(contours) > 0) and (self.safety_counter >= 210)):
             self.ready_to_go = True
 
         self.safety_counter += 1
@@ -260,7 +314,7 @@ class ConveyorChallenge:
             ]
         )
 
-        if (self.change_target >= 8):
+        if (self.change_target >= 5 and self.robot_target < 3):
             self.robot_target += 1
             self.change_target = 0
 
@@ -309,7 +363,7 @@ class ConveyorChallenge:
         """
 
         # Controller's parameters
-        KP = 0.6
+        KP = 0.5
         KI = 0.0
         KD = 0.001
 
@@ -332,7 +386,7 @@ class ConveyorChallenge:
         """
 
         # Controller's parameters
-        KP = -1.0
+        KP = -0.8
         KI = -0.0
         KD = -0.03
 
@@ -358,6 +412,7 @@ class ConveyorChallenge:
         camera_condition = len(self.robot.resolution) > 1
         ready_to_go_stop = True
         self.cube_initial_diagnostic()
+        self.move_cubes_to_conveyor()
         while (True):
             if (ready_to_go_stop):
                 self.cube_package_diagnostic()
@@ -388,8 +443,21 @@ class ConveyorChallenge:
                     if ((vx == 0) and (vy == 0)):
                         self.change_target +=  1
 
+                    # Move the cubes
+                    if (self.change_target == 3):
+                        if (self.robot_target == 0):
+                            self.move_cube(3)
+                        if (self.robot_target == 1):
+                            self.move_cube(4)
+                        if (self.robot_target == 2):
+                            self.move_cube(1)
+                        if (self.robot_target == 3):
+                            self.move_cube(0)
+                            self.move_cube(2)
+
                     last_time = time.time()
-                if (cv.waitKey(1) & 0xFF == ord('q')):
+                if ((cv.waitKey(1) & 0xFF == ord('q')) or ((self.change_target >= 5) and (self.robot_target == 3))):
+                    print("We are MELOS!!!")
                     break
         
         self.stop_conextion()
