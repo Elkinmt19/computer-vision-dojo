@@ -27,7 +27,7 @@ class PoolGame:
     def get_images(self):
         self.images = list()
         self.images.append(cv.imread("holes.png",1))
-        self.images.append(cv.imread("balls.png",1))
+        self.images.append(cv.imread("ball_2.png",1))
 
     def watch_video(self):
         """
@@ -91,16 +91,19 @@ class PoolGame:
         hsv_image = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
         # Umbral's values for the segmentation of the objects
-        LOWER_VALUES = np.array([0, 0, 164])
-        UPPER_VALUES = np.array([69, 62, 255])
+        LOWER_VALUES = np.array([0, 0, 136])
+        UPPER_VALUES = np.array([69, 53, 255])
 
         binary_image = cv.inRange(hsv_image, LOWER_VALUES, UPPER_VALUES)
 
-        erode_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE , (12,12))
-        dilate_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (14,14))
+        erode_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE , (6,6))
+        dilate_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (16,16))
+
+        # medianBlur filter - to smooth out an image
+        blur_image = cv.medianBlur(binary_image, 17)
 
         # erode filter - to erode an image
-        erode_image = cv.erode(binary_image, erode_kernel, iterations=1)
+        erode_image = cv.erode(blur_image, erode_kernel, iterations=1)
 
         # dilate filter - to dilate an image
         dilate_image = cv.dilate(erode_image, dilate_kernel, iterations=1)
@@ -115,6 +118,10 @@ class PoolGame:
         return contours
 
     def hole_number_validation(self, center):
+        """
+        This is a simple mthod that allows to map between the center of 
+        each of the table's holes and the number that each of them have.
+        """
         holes_centers = [
             [25, 23],
             [326, 18],
@@ -133,7 +140,12 @@ class PoolGame:
 
     def pool_game(self):
         """
-        This is the main method that uses all the methods above.
+        This is a method that uses the functionalities of the methods above
+        in order to analyze the 'billar.mp4' video, this method gets the holes 
+        of the table an their locations, it also gets the position of the 
+        white ball in every time and with all this information this method 
+        tells the user when exactly this ball has been inserted in which one 
+        of the holes of the table.
         """
         ball_center = (0,0)
         holes_centers = list()
@@ -148,6 +160,7 @@ class PoolGame:
             # Draw the comtours in the image
             contour_image = np.zeros((frame.shape[0], frame.shape[1], 3), np.uint8)
 
+            # Analysis of the contours of the table's holes
             for cnt in holes_contours:
                 area = cv.contourArea(cnt)
                 ratio = int(math.sqrt(area/math.pi))
@@ -160,6 +173,7 @@ class PoolGame:
 
                     holes_centers.append([cx,cy])
             
+            # Analysis of the contour of the white ball
             for cnt in ball_contours:
                 area = cv.contourArea(cnt)
                 ratio = int(math.sqrt(area/math.pi))
@@ -173,8 +187,8 @@ class PoolGame:
                     ball_center = [cx,cy]
 
             for center in holes_centers:
-                x_condition = (ball_center[0] > (center[0] - 10)) and (ball_center[0] < (center[0] + 10))
-                y_condition = (ball_center[1] > (center[1] - 10)) and (ball_center[1] < (center[1] + 10))
+                x_condition = (ball_center[0] > (center[0] - 3)) and (ball_center[0] < (center[0] + 3))
+                y_condition = (ball_center[1] > (center[1] - 3)) and (ball_center[1] < (center[1] + 3))
                 if (x_condition and y_condition):
                     print(f"Error - the white ball has been inserted in the hole {self.hole_number_validation(center)}")
                     ball_center = [0,0]
