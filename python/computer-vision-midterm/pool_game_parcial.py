@@ -27,7 +27,7 @@ class PoolGame:
     def get_images(self):
         self.images = list()
         self.images.append(cv.imread("holes.png",1))
-        self.images.append(cv.imread("ball_2.png",1))
+        self.images.append(cv.imread("balls.png",1))
 
     def watch_video(self):
         """
@@ -213,6 +213,5 @@ def main():
     # This is the main function of the whole script, just running this 
     # single command the application is gonna work.
     pool_game = PoolGame().pool_game()
-
 if __name__ == "__main__":
     sys.exit(main())
