@@ -47,7 +47,7 @@ class ConveyorChallenge:
         self.__error = [0.0,0.0,0.0,0.0,0.0,0.0]
         self.__amount_i_term = [0.0,0.0,0.0]
         self.__orientation_setpoint = 0.0
-        self.__distance_setpoint = 0.08
+        self.__distance_setpoint = 0.09
 
         # Measurement variables
         self.area = 0.0
@@ -246,7 +246,7 @@ class ConveyorChallenge:
             cv.CHAIN_APPROX_NONE
         )
 
-        if ((len(contours) > 0) and (self.safety_counter >= 210)):
+        if ((len(contours) > 0) and (self.safety_counter >= 75)):
             self.ready_to_go = True
 
         self.safety_counter += 1
@@ -363,7 +363,7 @@ class ConveyorChallenge:
         """
 
         # Controller's parameters
-        KP = 0.5
+        KP = 0.4
         KI = 0.0
         KD = 0.001
 
