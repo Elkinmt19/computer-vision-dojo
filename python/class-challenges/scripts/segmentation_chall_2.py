@@ -272,7 +272,7 @@ def main():
     required = parser.add_argument_group('required arguments')
     required.add_argument(
         '-s', '--stage', dest='stage', required=True, choices=[
-            "one","two","tree","four","five"
+            "one","two","three","four","five"
         ],
         help='The stage of the challenge you want to execute'
     )
@@ -288,7 +288,7 @@ def main():
             coins.group_coin_segmentation()
         elif act == "two":
             coins.coin_count()
-        elif act == "tree":
+        elif act == "three":
             coins.coin_connect_components()
         elif act == "four":
             coins.count_bars()

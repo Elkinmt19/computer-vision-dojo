@@ -40,7 +40,7 @@ class DolphinPlayingWithPixels:
     
     def dolphin_channels(self):
         """
-        Method to show an image in its tree channels (Red, Green, Blue).
+        Method to show an image in its three channels (Red, Green, Blue).
         """
         cv.imshow("Original dolphin", self.image)
         for i in iter(range(3)):
@@ -158,7 +158,7 @@ def main():
     required = parser.add_argument_group('required arguments')
     required.add_argument(
         '-s', '--stage', dest='stage', required=True, choices=[
-            "one","two","tree","four","five"
+            "one","two","three","four","five"
         ],
         help='The stage of the challenge you want to execute'
     )
@@ -183,7 +183,7 @@ def main():
             dolphin.dolphin_channels()
         elif act == "two":
             dolphin.dolphin_y_reverse()
-        elif act == "tree":
+        elif act == "three":
             dolphin.dolphin_x_reverse()
         elif act == "four":
             dolphin.dolphin_colorfull()

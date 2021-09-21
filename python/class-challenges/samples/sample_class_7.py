@@ -55,11 +55,13 @@ for fn in img_names:
             x:x+w
         ]
 
+        # Get the region of interest of each one of the images 
         img_resize = cv.resize(roi_image,(30, 60), interpolation = cv.INTER_CUBIC)
         _,binary_image_res = cv.threshold(img_resize,0,255,cv.THRESH_BINARY + cv.THRESH_OTSU)
         cv.imshow("img_resize", binary_image_res)
         cv.waitKey(1)
 
+        # Get the contours again in order to make sure that the object has not been corructed
         contours_2,hierarchy_2 = cv.findContours(binary_image_res.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
         for cnt_2 in contours_2:
             x,y,w,h = cv.boundingRect(cnt_2)
