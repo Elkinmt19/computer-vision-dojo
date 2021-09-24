@@ -23,7 +23,7 @@ i=1
 
 # Create a new excel file with a new sheet to work with
 path_dataset_file = os.path.join(
-    ASSETS_FOLDER, "xlsx", "Numbers_dataset.xlsx")
+    ASSETS_FOLDER, "xlsx", "numbers_dataset.xlsx")
 workbook = xlsxwriter.Workbook(path_dataset_file)
 worksheet = workbook.add_worksheet('Num_0')
 
@@ -76,8 +76,8 @@ for fn in img_names:
 
             VectorCarac = np.array([A, p, Comp, RA, Hu[0][0], Hu[1][0], Hu[2][0], Hu[3][0], Hu[4][0], Hu[5][0], Hu[6][0]], dtype = np.float32)
         
+            worksheet.write(row, col, "A")
             for carac in (VectorCarac):
-                worksheet.write(row, col, "A")
                 worksheet.write(row, i, carac)
                 i=i+1
             i=1
