@@ -97,8 +97,6 @@ class NumbersDatasetPreprocessing:
                         Circ,
                         r,
                         RA,
-                        cx,
-                        cy,
                         Hu[0][0],
                         Hu[1][0],
                         Hu[2][0],
@@ -128,7 +126,7 @@ class NumbersDatasetPreprocessing:
         X = scale(self.number_features)
 
         # Perform the PCA analysis 
-        pca = decomposition.PCA(n_components=11)
+        pca = decomposition.PCA(n_components=9)
         pca.fit(X)
 
         # Calculate the scores values
