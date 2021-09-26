@@ -16,11 +16,11 @@ class ComputerVisionQuiz1TopicOne:
 
     def generate_image_list(self):
         print("Loading original images in a list...")
-        path_ori_imgs = "./Punto1/originales/"
+        path_ori_imgs = "./first-question/originales/"
         self.originals_images = [cv.imread(f"{path_ori_imgs}placa_{x+1}_Original.png") for x in iter(range(5))]
 
         print("Loading wrong images in a list...")
-        path_wrong_imgs = "./Punto1/malas/"
+        path_wrong_imgs = "./first-question/malas/"
         self.wrong_images = [cv.imread(f"{path_wrong_imgs}placa_{x+1}_P1.png") for x in iter(range(5))]
 
     def validate_x_flip(self):
@@ -73,10 +73,10 @@ class ComputerVisionQuiz1TopicOne:
                 self.wrong_images[i] = cv.flip(self.wrong_images[i], -1)
 
         print("Images fixed!")
-        print("Saving fixed images in './Punto1/Fixed_images/' path...")
+        print("Saving fixed images in './first-question/Fixed_images/' path...")
         # Saving fixed images
         for i in iter(range(len(self.wrong_images))):
-            cv.imwrite(f"./Punto1/Fixed_images/placa_{i+1}_fixed.png", self.wrong_images[i])
+            cv.imwrite(f"./first-question/Fixed_images/placa_{i+1}_fixed.png", self.wrong_images[i])
 
     def get_values_color_segmentation(self):
         for img in self.wrong_images:
@@ -109,8 +109,8 @@ class ComputerVisionQuiz1TopicOne:
                     else:
                         image[i,j] = 0
             
-            cv.imwrite(f"./Punto1/Segmentated_images/placa_{w+1}_segmentated.png", image)
-        print("Segmentated images saved in './Punto1/Segmentated_images/' path...")
+            cv.imwrite(f"./first-question/Segmentated_images/placa_{w+1}_segmentated.png", image)
+        print("Segmentated images saved in './first-question/Segmentated_images/' path...")
 
 
 class ComputerVisionQuiz1TopicTwo:
@@ -121,7 +121,7 @@ class ComputerVisionQuiz1TopicTwo:
 
     def get_medical_image(self):
         image_name = input("Enter the name of the image you wanna analyze: ")
-        self.medical_image = cv.imread(f"./Punto2/{image_name}")
+        self.medical_image = cv.imread(f"./second-question/{image_name}")
 
     def click_mouse_callback(self, event, y, x, flags, param):
         """
@@ -180,8 +180,8 @@ class ComputerVisionQuiz1TopicTwo:
                     image[i,j] = 255
                 else:
                     image[i,j] = 0
-        cv.imwrite(f"./Punto2/fractura_binarized.jpg", image)
-        print("Binarized image saved in './Punto2/' path...")
+        cv.imwrite(f"./second-question/fractura_binarized.jpg", image)
+        print("Binarized image saved in './second-question/' path...")
 
 def topic_one():
     cv_quiz1 = ComputerVisionQuiz1TopicOne()
