@@ -89,6 +89,19 @@ class NumbersDatasetPreprocessing:
                     RA = w/float(h)
                     Hu = cv.HuMoments(M)
 
+                    # Calculate additional features
+                    diago_mean = 0
+                    y_mean = 0
+                    x_mean = 0
+                    for i in iter(range(binary_image_res.shape[0])):
+                        for j in iter(range(binary_image_res.shape[1])):
+                            if (i == j):
+                                diago_mean += binary_image_res[i,j]
+                            if (i == int(binary_image_res.shape[0]/2)):
+                                y_mean += binary_image_res[i,j]
+                            if (j == int(binary_image_res.shape[1]/2)):
+                                x_mean += binary_image_res[i,j]    
+
                     # Vector with the object's features
                     VectorCarac = np.array([
                         A,
@@ -97,6 +110,9 @@ class NumbersDatasetPreprocessing:
                         Circ,
                         r,
                         RA,
+                        diago_mean,
+                        y_mean,
+                        x_mean,
                         Hu[0][0],
                         Hu[1][0],
                         Hu[2][0],
@@ -126,7 +142,7 @@ class NumbersDatasetPreprocessing:
         X = scale(self.number_features)
 
         # Perform the PCA analysis 
-        pca = decomposition.PCA(n_components=9)
+        pca = decomposition.PCA(n_components=11)
         pca.fit(X)
 
         # Calculate the scores values
