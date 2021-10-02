@@ -26,10 +26,12 @@ class ModelTraining:
 
     :param model: model that is gonna be used {mlp or svm} (String).
     :param model_params: list of params of the model that was choosen (List).
+    :param model_flag: Boolean variable that allows save the models that were trained (Bool).
     """
-    def __init__(self, model, model_params):
+    def __init__(self, model, model_params, model_flag):
         self.model = model 
         self.model_params = model_params
+        self.model_flag = model_flag
 
         # Create a new excel file with a new sheet to work with
         path_dataset_file = os.path.join(
@@ -91,8 +93,9 @@ class ModelTraining:
         print(f"Resulting Accuracy: {result_accuracy*100.0}")
 
         # Save the resulting models
-        joblib.dump(X, self.models_path("model_Xmpl_all_numbers.pkl"))
-        joblib.dump(mlp, self.models_path("model_mlp_all_numbers.pkl"))
+        if (self.model_flag):
+            joblib.dump(X, self.models_path("model_Xmpl_all_numbers.pkl"))
+            joblib.dump(mlp, self.models_path("model_mlp_all_numbers.pkl"))
 
     def svm_model(self):
         """
@@ -118,8 +121,9 @@ class ModelTraining:
         print(f"Resulting Accuracy: {result_accuracy*100.0}")
 
         # Save the resulting models
-        joblib.dump(X, self.models_path("model_Xsvm_all_numbers.pkl"))
-        joblib.dump(svm, self.models_path("model_svm_all_numbers.pkl"))
+        if (self.model_flag):
+            joblib.dump(X, self.models_path("model_Xsvm_all_numbers.pkl"))
+            joblib.dump(svm, self.models_path("model_svm_all_numbers.pkl"))
 
     def train_model(self):
         try:
@@ -143,7 +147,7 @@ def main():
         "rbf"
     ]
 
-    model_train = ModelTraining("mlp", mlp_params)
+    model_train = ModelTraining("mlp", mlp_params, True)
     for _ in iter(range(10)):
         model_train.train_model()
 
