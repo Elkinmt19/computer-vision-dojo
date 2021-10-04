@@ -8,10 +8,11 @@ from glob import glob
 import numpy as np
 import cv2 as cv
 import xlsxwriter
-from sklearn.preprocessing import scale # Data scaling
+from sklearn.preprocessing import StandardScaler # Data scaling
 from sklearn import decomposition #PCA
 import plotly.express as px
 import pandas as pd 
+import joblib
 
 # My Own imports
 import get_path_assests_folder as gpaf
@@ -20,7 +21,10 @@ import get_path_assests_folder as gpaf
 ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 class NumbersDatasetPreprocessing:
-    def __init__(self):
+    def __init__(self, model_flag):
+        # Model's flag in order to allow save the models
+        self.model_flag = model_flag
+
         # Define the resulted features vector
         self.number_features = np.array([])
 
@@ -139,7 +143,8 @@ class NumbersDatasetPreprocessing:
 
     def principal_component_anaylis(self):
         # Data scaling
-        X = scale(self.number_features)
+        ss = StandardScaler()
+        X = ss.fit_transform(self.number_features)
 
         # Perform the PCA analysis 
         pca = decomposition.PCA(n_components=11)
@@ -152,6 +157,11 @@ class NumbersDatasetPreprocessing:
         for i in iter(range(scores.shape[0])):
             for j in iter(range(scores.shape[1])):
                 self.worksheet_pca.write(i, j+1, scores[i,j])
+
+        # Save important models
+        if (self.model_flag):
+            joblib.dump(ss, self.models_path("model_scaling_all_numbers.pkl"))
+            joblib.dump(pca, self.models_path("model_pca_all_numbers.pkl"))
 
         # Explained variance for each PC
         explained_variance = pca.explained_variance_ratio_
@@ -173,6 +183,14 @@ class NumbersDatasetPreprocessing:
 
         fig.update_traces(texttemplate='%{text:.3f}', textposition='outside')
         fig.show()
+    
+    def models_path(self, model_name):
+        model_path = os.path.join(
+            ASSETS_FOLDER,
+            "models",
+            model_name
+        )
+        return model_path
 
     def complete_numbers_dataset(self):
         for i in iter(range(10)):
@@ -191,7 +209,7 @@ class NumbersDatasetPreprocessing:
 
 
 def main():
-    numbers_prepro = NumbersDatasetPreprocessing()
+    numbers_prepro = NumbersDatasetPreprocessing(True)
     numbers_prepro.complete_numbers_dataset()
 
 if __name__ == "__main__":

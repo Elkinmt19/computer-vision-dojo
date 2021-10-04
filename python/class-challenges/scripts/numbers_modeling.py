@@ -94,7 +94,6 @@ class ModelTraining:
 
         # Save the resulting models
         if (self.model_flag):
-            joblib.dump(X, self.models_path("model_Xmpl_all_numbers.pkl"))
             joblib.dump(mlp, self.models_path("model_mlp_all_numbers.pkl"))
 
     def svm_model(self):
@@ -122,7 +121,6 @@ class ModelTraining:
 
         # Save the resulting models
         if (self.model_flag):
-            joblib.dump(X, self.models_path("model_Xsvm_all_numbers.pkl"))
             joblib.dump(svm, self.models_path("model_svm_all_numbers.pkl"))
 
     def train_model(self):
@@ -147,7 +145,7 @@ def main():
         "rbf"
     ]
 
-    model_train = ModelTraining("mlp", mlp_params, True)
+    model_train = ModelTraining("mlp", mlp_params, False)
     for _ in iter(range(10)):
         model_train.train_model()
 
