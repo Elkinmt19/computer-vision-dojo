@@ -46,7 +46,7 @@ class NumbersDatasetPreprocessing:
         # Universal path depending of the extention of the image
         path_numbers = os.path.join(
             ASSETS_FOLDER, "imgs", f"num/{number}/{number} (*.png")
-
+        
         # Function to find the images of the dataset
         self.img_names = glob(path_numbers)
 
@@ -56,8 +56,6 @@ class NumbersDatasetPreprocessing:
             gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
             blur = cv.medianBlur(gray,5)
             _,binary_image = cv.threshold(blur,0,255,cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
-
-            drawing = np.zeros(img.shape,np.uint8) # Image to draw the contours
 
             # Get the contours of the images
             contours, _ = cv.findContours(binary_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
