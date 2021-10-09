@@ -114,7 +114,10 @@ class ModelTraining:
 
         # Save the resulting models
         if (self.model_flag):
-            joblib.dump(mlp, self.models_path("model_mlp_all_numbers.pkl"))
+            joblib.dump(mlp, self.models_path("model_mlp_characters.pkl"))
+
+        # Return the model and the accuracy
+        return mlp, result_accuracy*100
 
     def svm_model(self):
         """
@@ -154,7 +157,10 @@ class ModelTraining:
 
         # Save the resulting models
         if (self.model_flag):
-            joblib.dump(svm, self.models_path("model_svm_all_numbers.pkl"))
+            joblib.dump(svm, self.models_path("model_svm_characters.pkl"))
+
+        # Return the model and the accuracy
+        return svm, result_accuracy*100
 
     def plot_validation_curve(self, X, Y):
         # Validate the model that is being used
@@ -208,17 +214,17 @@ class ModelTraining:
     def train_model(self):
         try:
             if (self.model == "mlp"):
-                self.mlp_model()
+                _, _ = self.mlp_model()
             if (self.model == "svm"):
-                self.svm_model()
+                _, _ = self.svm_model()
         except:
             print("A PROBLEM HAPPEN!!!")
 
 def main():
     mlp_params = [
         "relu",
-        (100,100,100),
-        3000,
+        (10, 50),
+        5000,
         0.0001
     ]
 

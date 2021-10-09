@@ -50,33 +50,21 @@ class CharactersDatasetPreprocessing:
         # Function to find the images of the dataset
         self.img_names = glob(path_characters)
 
-    def extract_features(self, image, vector_size=32):
-        try:
-            # Using KAZE, cause SIFT, ORB and other was moved to additional module
-            # which is adding addtional pain during install
-            alg = cv.KAZE_create()
-            # Dinding image keypoints
-            kps = alg.detect(image)
-            # Getting first 32 of them. 
-            # Number of keypoints is varies depend on image size and color pallet
-            # Sorting them based on keypoint response value(bigger is better)
-            kps = sorted(kps, key=lambda x: -x.response)[:vector_size]
-            # computing descriptors vector
-            kps, dsc = alg.compute(image, kps)
-            # Flatten all of them in one big vector - our feature vector
-            dsc = dsc.flatten()
-            # Making descriptor of same size
-            # Descriptor vector size is 64
-            needed_size = (vector_size * 64)
-            if dsc.size < needed_size:
-                # if we have less the 32 descriptors then just adding zeros at the
-                # end of our feature vector
-                dsc = np.concatenate([dsc, np.zeros(needed_size - dsc.size)])
-        except cv.error as e:
-            print ('Error: ', e)
-            return None
+    def corner_detection(self, image):
+        gray = np.float32(image)
+        dst = cv.cornerHarris(gray,2,3,0.04)
+        #result is dilated for marking the corners, not important
+        dst = cv.dilate(dst,None)
+        # Threshold for an optimal value, it may vary depending on the image.
+        key_variable = dst>0.01*dst.max()
+        
+        x = list(np.where(key_variable == True)[0])
+        y = list(np.where(key_variable == True)[1])
 
-        return dsc
+        xmean = sum(x)
+        ymean = sum(y)
+
+        return xmean, ymean
 
     def character_data_preprocessing(self, character_class):
         erode_kernel = cv.getStructuringElement(cv.MORPH_RECT , (2,2))
@@ -112,6 +100,9 @@ class CharactersDatasetPreprocessing:
                 cv.imshow("img_resize", binary_image_res)
                 cv.waitKey(1)
 
+                # Calculate more features based on the corners founded by Harris algorithm
+                corner_x, corner_y = self.corner_detection(binary_image_res)
+
                 # Get the contours again in order to make sure that the object has not been corructed
                 contours_2, _ = cv.findContours(binary_image_res.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
                 for cnt_2 in contours_2:
@@ -131,6 +122,10 @@ class CharactersDatasetPreprocessing:
 
                         # Calculate additional features
                         diago_mean = 0
+                        diago_mean1 = 0
+                        diago_mean2 = 0
+                        diago_mean3 = 0
+                        diago_mean4 = 0
                         y_mean = 0
                         x_mean = 0
                         y_mean_half_l = 0
@@ -141,6 +136,10 @@ class CharactersDatasetPreprocessing:
                             for j in iter(range(binary_image_res.shape[1])):
                                 if (i == j):
                                     diago_mean += binary_image_res[i,j]
+                                    diago_mean1 += binary_image_res[i - 10,j]
+                                    diago_mean2 += binary_image_res[i + 10,j]
+                                    diago_mean3 += binary_image_res[i - 20,j]
+                                    diago_mean4 += binary_image_res[i + 20,j]
                                 if (i == int(binary_image_res.shape[0]/2)):
                                     y_mean += binary_image_res[i,j]
                                 if (j == int(binary_image_res.shape[1]/2)):
@@ -154,9 +153,6 @@ class CharactersDatasetPreprocessing:
                                 if (j == int((binary_image_res.shape[1]*3)/4)):
                                     x_mean_half_u += binary_image_res[i,j] 
 
-                        # Calculate more advanced features using KAZE algorithm
-                        kaze_features = self.extract_features(binary_image_res)
-
                         # Vector with the object's features
                         VectorCarac = np.array([
                             A,
@@ -166,39 +162,25 @@ class CharactersDatasetPreprocessing:
                             r,
                             RA,
                             diago_mean,
+                            diago_mean1,
+                            diago_mean2,
+                            diago_mean3,
+                            diago_mean4,
                             y_mean,
                             x_mean,
                             y_mean_half_l,
                             x_mean_half_l,
                             y_mean_half_u,
                             x_mean_half_u,
+                            corner_x,
+                            corner_y,
                             Hu[0][0],
                             Hu[1][0],
                             Hu[2][0],
                             Hu[3][0],
                             Hu[4][0],
                             Hu[5][0],
-                            Hu[6][0],
-                            kaze_features[0],
-                            kaze_features[1],
-                            kaze_features[2],
-                            kaze_features[3],
-                            kaze_features[4],
-                            kaze_features[5],
-                            kaze_features[6],
-                            kaze_features[7],
-                            kaze_features[8],
-                            kaze_features[9],
-                            kaze_features[10],
-                            kaze_features[11],
-                            kaze_features[12],
-                            kaze_features[13],
-                            kaze_features[14],
-                            kaze_features[15],
-                            kaze_features[16],
-                            kaze_features[17],
-                            kaze_features[18],
-                            kaze_features[19]],
+                            Hu[6][0]],
                             dtype = np.float32
                         )
 
@@ -224,7 +206,7 @@ class CharactersDatasetPreprocessing:
         X = ss.fit_transform(self.characters_features)
 
         # Perform the PCA analysis 
-        pca = decomposition.PCA(n_components=40)
+        pca = decomposition.PCA(n_components=26)
         pca.fit(X)
 
         # Calculate the scores values
@@ -272,23 +254,17 @@ class CharactersDatasetPreprocessing:
     def complete_characters_dataset(self):
         character_list = [
             "A",
-            "B",
             "C",
             "D",
             "E",
-            "F",
-            "G",
-            "H",
             "I",
             "P",
             "R",
-            "S",
             "T",
             "V",
-            "X",
             "Z"
         ]
-        for i in iter(range(16)):
+        for i in iter(range(10)):
             # Get the number paths
             self.get_character_paths(character_list[i])
 
@@ -304,7 +280,7 @@ class CharactersDatasetPreprocessing:
 
 
 def main():
-    characters_prepro = CharactersDatasetPreprocessing(False)
+    characters_prepro = CharactersDatasetPreprocessing(True)
     characters_prepro.complete_characters_dataset()
 
 if __name__ == "__main__":
