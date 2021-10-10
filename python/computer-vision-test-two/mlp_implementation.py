@@ -42,12 +42,12 @@ class MlpImplementation:
 
     def get_letters(self):
         words_coordinates = [
-            np.array([[86, 74],[152, 240]]),
-            np.array([[87, 283],[153, 449]]),
-            np.array([[92, 508],[159, 640]]),
-            np.array([[93, 672],[161, 845]]),
-            np.array([[96, 876],[157, 1040]]),
-            np.array([[90, 1068],[167, 1297]]),
+            np.array([[83, 74],[160, 240]]),
+            np.array([[83, 283],[160, 453]]),
+            np.array([[83, 508],[160, 640]]),
+            np.array([[83, 672],[160, 845]]),
+            np.array([[83, 876],[160, 1040]]),
+            np.array([[83, 1068],[160, 1297]]),
         ]
 
         self.words = list()
@@ -64,7 +64,7 @@ class MlpImplementation:
 
             self.words.append(roiImage)
         
-        word_wei = [41, 41, 35, 41, 35, 45]
+        word_wei = [39, 41, 35, 41, 35, 45]
 
         for w in iter(range(len(self.words))):
             letters_buff = list()
@@ -91,8 +91,8 @@ class MlpImplementation:
 
     def extract_features(self, img):
         # Define kernels for the filters
-        erode_kernel = cv.getStructuringElement(cv.MORPH_RECT , (2,2))
-        dilate_kernel = cv.getStructuringElement(cv.MORPH_RECT, (2,2))
+        erode_kernel = cv.getStructuringElement(cv.MORPH_RECT , (3,3))
+        dilate_kernel = cv.getStructuringElement(cv.MORPH_RECT, (3,3))
 
         gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
     
@@ -109,6 +109,9 @@ class MlpImplementation:
         # Get the contours of the images
         contours, _ = cv.findContours(binary_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
 
+        # Process the contornous
+        contours = [x for x in contours if (x.shape[0] >= 20)]
+
         # Get the 7 moments of hu and other characteristics
         for cnt in contours:
             x,y,w,h = cv.boundingRect(cnt)
@@ -123,7 +126,7 @@ class MlpImplementation:
             _,binary_image_res = cv.threshold(img_resize,0,255,cv.THRESH_BINARY + cv.THRESH_OTSU)
 
             # Calculate more features based on the corners founded by Harris algorithm
-            corner_x, corner_y = self.corner_detection(binary_image_res)
+            corner_x, corner_y = self.corner_detection(binary_image_res.copy())
 
             # Get the contours again in order to make sure that the object has not been corructed
             contours_2, _ = cv.findContours(binary_image_res.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)

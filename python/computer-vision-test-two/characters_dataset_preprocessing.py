@@ -85,6 +85,9 @@ class CharactersDatasetPreprocessing:
             # Get the contours of the images
             contours, _ = cv.findContours(binary_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
 
+            # Process the contornous
+            contours = [x for x in contours if (x.shape[0] >= 20)]
+
             # Get the 7 moments of hu and other characteristics
             for cnt in contours:
                 x,y,w,h = cv.boundingRect(cnt)
