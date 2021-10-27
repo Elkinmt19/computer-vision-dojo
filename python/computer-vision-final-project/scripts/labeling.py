@@ -14,13 +14,13 @@ PERCENT = 1
 WIDTH = 920
 HEIGHT = 640
 pathImg = ''
-path = 'D:\Home\CarsTrucks\imagenes'
+path = ''
 fileCSV = 'train.csv'
 jumps = 0
 countVideos = 1
 countFrames = 1
 nameImg = 'img'
-label = 'a'
+label = 'person'
 labelOK = False
 W = 0
 H = 0
@@ -29,7 +29,7 @@ ymin = 0
 bandClick = False
 bandClass = False
 bandRect = False
-CLASSES = ["a", "b", "c", "d", "e", "f", "g", "h"]
+CLASSES = ["person", "mannequin", "dog", "plant", "table", "chair", "tree", "washbasin","bathroom","stairs","laptop","container"]
 
 cv.namedWindow('image')
 img = img = np.zeros((240, 480, 3), np.uint8)
@@ -39,10 +39,10 @@ class textBoxLabel(wx.Dialog):
     def __init__(self, parent, id, title):
         global label, labelOK
         
-        wx.Dialog.__init__(self, parent, id, title, size = (175, 110))
+        wx.Dialog.__init__(self, parent, id, title, size = (500, 200))
         self.Center()
 
-        self.listClass = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        self.listClass = ["person", "mannequin", "dog", "plant", "table", "chair", "tree", "washbasin","bathroom","stairs","laptop","container"]
         self.rbClass = wx.RadioBox(self, pos=(10, 0), choices = self.listClass, majorDimension=4, style = wx.RA_SPECIFY_COLS)
         self.rbClass.SetSelection(self.listClass.index(label))
         #self.txtB = wx.TextCtrl(self, value = label, pos = (10, 10), size = (40, -1))
@@ -114,8 +114,8 @@ def click_mouse(event, x, y, flags, param):
 
         dialog2 = textBoxLabel(None, -1, "label")
         dialog2.ShowModal()
-        
-        if labelOK and (label == 'a' or label == 'b' or label == 'c' or label == 'd' or label == 'e' or label == 'f' or label == 'g' or label == 'h'):
+        #["person", "mannequin", "dog", "plant", "table", "chair", "tree", "washbasin","bathroom","stairs","laptop","container"]
+        if labelOK and (label == 'person' or label == 'mannequin' or label == 'dog' or label == 'plant' or label == 'table' or label == 'chair' or label == 'tree' or label == 'washbasin' or label == 'bathroom' or label == 'stairs' or label == 'laptop' or label == 'container'):
             labelOK = False
             tagged = True
             xmax = x
@@ -178,7 +178,7 @@ def predict(img, fileTxt):
             dialog2 = textBoxLabel(None, -1, "label")
             dialog2.ShowModal()
 
-            if labelOK and (label == 'a' or label == 'b' or label == 'c' or label == 'd' or label == 'e' or label == 'f' or label == 'g' or label == 'h'):
+            if labelOK and (label == 'person' or label == 'mannequin' or label == 'dog' or label == 'plant' or label == 'table' or label == 'chair' or label == 'tree' or label == 'washbasin' or label == 'bathroom' or label == 'stairs' or label == 'laptop' or label == 'container'):
                 labelOK = False
                 tagged = True
                 divH = (H*PERCENT) / h
