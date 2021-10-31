@@ -1,18 +1,30 @@
+# Built-in imports 
+import os
+
 # External imports 
 import cv2 as cv
 import numpy as np
 
+# My Own imports
+import get_path_assests_folder as gpaf
+
+# Get assets folder in repo for the samples
+ASSETS_FOLDER = gpaf.get_assets_folder_path()
+
+yolo_files_path = os.path.join(
+        ASSETS_FOLDER, "yolo")
+
 # First it is mandatory to load the yolo algorithm
-net = cv.dnn.readNet("yolov3.weights", "yolov3_custom.cfg")
+net = cv.dnn.readNet(f"{yolo_files_path}/yolov3.weights", f"{yolo_files_path}/yolov3_custom.cfg")
 classes = []
-with open("obj.names", "r") as f:
+with open(f"{yolo_files_path}/obj.names", "r") as f:
     classes = [line.strip() for line in f.readlines()]
 layer_names = net.getLayerNames()
 output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
 # Load the image where the object detection is going to be perform
-img = cv.imread("room_ser.jpg",1)
+img = cv.imread("test_image.jpg",1)
 img = cv.resize(img, None, fx=0.4, fy=0.4)
 height, width, channels = img.shape
 
