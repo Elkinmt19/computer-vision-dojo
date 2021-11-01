@@ -15,7 +15,7 @@ yolo_files_path = os.path.join(
         ASSETS_FOLDER, "yolo")
 
 # First it is mandatory to load the yolo algorithm
-net = cv.dnn.readNet(f"{yolo_files_path}/yolov3.weights", f"{yolo_files_path}/yolov3_custom.cfg")
+net = cv.dnn.readNet(f"{yolo_files_path}/yolov3_custom_last_v2.weights", f"{yolo_files_path}/yolov3_custom.cfg")
 classes = []
 with open(f"{yolo_files_path}/obj.names", "r") as f:
     classes = [line.strip() for line in f.readlines()]
