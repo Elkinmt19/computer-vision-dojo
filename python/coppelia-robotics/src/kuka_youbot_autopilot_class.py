@@ -37,25 +37,25 @@ class KukaYouBotClass:
         # Define the movile robot motor's parameters
         _, self.motorWheel[0] = sim.simxGetObjectHandle(
             self.__client,
-            "rollingJoint_rl",
+            "rollingJoint_rl#2",
             sim.simx_opmode_oneshot_wait
         )
 
         _, self.motorWheel[1] = sim.simxGetObjectHandle(
             self.__client,
-            "rollingJoint_rr",
+            "rollingJoint_rr#2",
             sim.simx_opmode_oneshot_wait
         )
 
         _, self.motorWheel[2] = sim.simxGetObjectHandle(
             self.__client,
-            "rollingJoint_fl",
+            "rollingJoint_fl#2",
             sim.simx_opmode_oneshot_wait
         )
 
         _, self.motorWheel[3] = sim.simxGetObjectHandle(
             self.__client,
-            "rollingJoint_fr",
+            "rollingJoint_fr#2",
             sim.simx_opmode_oneshot_wait
         )
     
@@ -64,25 +64,25 @@ class KukaYouBotClass:
         for i in iter(range(5)):
             self.robot_joints.append(sim.simxGetObjectHandle(
                 self.__client,
-                f"youBotArmJoint{i}",
+                f"youBotArmJoint{i}#2",
                 sim.simx_opmode_oneshot_wait
             ))
 
         for i in iter(range(1,3)):
             self.robot_gripper.append(sim.simxGetObjectHandle(
                 self.__client,
-                f"youBotGripperJoint{i}",
+                f"youBotGripperJoint{i}#2",
                 sim.simx_opmode_oneshot_wait
             ))
 
     def define_camera_sensor(self):
         # Define the camera's parameters
-        self.camera = list()
-        self.resolution = list()
-        self.image = list()
+        self.camera = [None]*4
+        self.resolution = [None]*4
+        self.image = [None]*4
 
         # Configure the 4 vision sensors of the robot
-        for c in iter(range(4)):
+        for c in iter(range(1)):
             _,self.camera[c] = sim.simxGetObjectHandle(
                 self.__client,
                 f"VS{c+1}",

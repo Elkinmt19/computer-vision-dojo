@@ -15,7 +15,7 @@ yolo_files_path = os.path.join(
         ASSETS_FOLDER, "yolo")
 
 # First it is mandatory to load the yolo algorithm
-net = cv.dnn.readNet(f"{yolo_files_path}/yolov3_custom_last_v2.weights", f"{yolo_files_path}/yolov3_custom.cfg")
+net = cv.dnn.readNet(f"{yolo_files_path}/yolov3_custom_last_v4.weights", f"{yolo_files_path}/yolov3_custom.cfg")
 classes = []
 with open(f"{yolo_files_path}/obj.names", "r") as f:
     classes = [line.strip() for line in f.readlines()]
@@ -69,7 +69,7 @@ for i in range(len(boxes)):
         label = str(classes[class_ids[i]])
         color = colors[i]
         cv.rectangle(img, (x, y), (x + w, y + h), color, 2)
-        cv.putText(img, label, (x, y + 30), font, 3, color, 3)
+        cv.putText(img, label, (x, y + 30), font, 1, color, 2)
 cv.imshow("Image", img)
 cv.waitKey(0)
 cv.destroyAllWindows()
