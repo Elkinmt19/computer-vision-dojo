@@ -4,7 +4,6 @@ yolo
 
 # C extensions
 *.so
-*.dll
 
 # Packages
 *.egg
