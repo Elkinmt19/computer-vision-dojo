@@ -1,6 +1,7 @@
 # Built-in imports 
 import os
 import sys 
+import threading as thr
 
 # External imports 
 import cv2 as cv
@@ -18,10 +19,15 @@ ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 class AvoidObstaclesDL:
     def __init__(self, robot):
+        # Define the robot's parameters
         self.robot = robot
-        self.camera_images = [None]*4
+
+        # Define variables for the deeplearning object detection algorithm
         self.yolo_files_path = os.path.join(ASSETS_FOLDER, "yolo")
         self.load_yolo_algorithm()
+
+        # Define thread's variables for the object detection implementation 
+        self.cameras_threads = [thr.Thread(target=self.detect_objects(x)) for x in iter(range(4))]
 
 
     def load_yolo_algorithm(self):
@@ -39,22 +45,17 @@ class AvoidObstaclesDL:
         self.output_layers = [self.layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
         self.colors = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
-    def get_robot_cameras_image(self):
-        # Preprocessing of the image
-        for i in iter(range(4)):
-            img = np.array(self.robot.image[i], dtype = np.uint8)
-            img.resize([self.robot.resolution[i][0], self.robot.resolution[i][1], 3])
+    def detect_objects(self, cam):
+        try:
+            # Preprocessing of the image
+            img = np.array(self.robot.image[cam], dtype = np.uint8)
+            img.resize([self.robot.resolution[cam][0], self.robot.resolution[cam][1], 3])
             img = np.rot90(img,2)
             img = np.fliplr(img)
             img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
-            
-            self.camera_images[i] = img
 
-    def detect_objects(self):
-        self.get_robot_cameras_image()
-        for i in iter(range(1)):
-            o_h, o_w = self.camera_images[i].shape[:2]
-            img = cv.resize(self.camera_images[i], None, fx=0.4, fy=0.4)
+            o_h, o_w = img.shape[:2]
+            img = cv.resize(img, None, fx=0.4, fy=0.4)
             height, width = img.shape[:2]
 
             # Perform the object detection
@@ -99,10 +100,12 @@ class AvoidObstaclesDL:
                     color = self.colors[i]
                     cv.rectangle(img, (x, y), (x + w, y + h), color, 2)
                     area = (x + w)*(y + h)
-                    print(f"object: {label} Area: {area}")
+                    # print(f"object: {label} Area: {area}")
                     cv.putText(img, label, (x, y + 30), font, 1, color, 2)
             # img = cv.resize(img, [o_h,o_w])        
-            cv.imshow(f"Image {i}", img)
+            cv.imshow(f"Image {cam}", img)
+        except:
+            print("An error just happen!!!")
 
 
 
@@ -132,11 +135,16 @@ def main():
 
     robot = kb.KukaYouBotClass(clientID)
 
-    controller = AvoidObstaclesDL(robot)
 
     while (1):
         robot.camera_buffer()
-        controller.detect_objects()
+        controller = AvoidObstaclesDL(robot)
+        for cm in controller.cameras_threads:
+            cm.start()
+
+        for cm in controller.cameras_threads:
+            cm.join()
+
         if (cv.waitKey(1) & 0xFF == ord('q')):
             print("We are MELOS!!!")
             break
