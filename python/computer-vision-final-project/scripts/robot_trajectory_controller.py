@@ -1,11 +1,6 @@
 # Built-in imports 
 import sys 
 import time
-import math
-
-# External imports 
-import cv2 as cv
-import numpy as np
 
 # Own imports 
 import sim

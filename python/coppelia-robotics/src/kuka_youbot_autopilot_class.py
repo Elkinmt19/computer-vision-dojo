@@ -82,7 +82,7 @@ class KukaYouBotClass:
         self.image = [None]*4
 
         # Configure the 4 vision sensors of the robot
-        for c in iter(range(1)):
+        for c in iter(range(4)):
             _,self.camera[c] = sim.simxGetObjectHandle(
                 self.__client,
                 f"VS{c+1}",
