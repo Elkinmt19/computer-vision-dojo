@@ -16,7 +16,7 @@ class KukaYouBotClass:
     def __init__(self, client):
         # Define client
         self.__client = client
-        # Create motors of the movile robot
+        # Create motors of the mobile robot
         self.motorWheel = [
             0,
             1,
@@ -27,14 +27,14 @@ class KukaYouBotClass:
         self.robot_joints = list()
         self.robot_gripper = list()
 
-        self.define_motors_movile_robot()
+        self.define_motors_mobile_robot()
 
         self.define_motors_manipulator_robot()
 
         self.define_camera_sensor()
 
-    def define_motors_movile_robot(self):
-        # Define the movile robot motor's parameters
+    def define_motors_mobile_robot(self):
+        # Define the mobile robot motor's parameters
         _, self.motorWheel[0] = sim.simxGetObjectHandle(
             self.__client,
             "rollingJoint_rl#2",
@@ -109,7 +109,7 @@ class KukaYouBotClass:
                 sim.simx_opmode_buffer
             )
 
-    def move_movile_robot_motors(self, wheels_velocity = [0,0,0,0]):
+    def move_mobile_robot_motors(self, wheels_velocity = [0,0,0,0]):
         """
         This is a method which allows to give a specific speed 
         to each of the robot's motors, depending of the motor 
@@ -156,21 +156,21 @@ class KukaYouBotClass:
     
 
 def main():
-    # End connexion 
+    # End connection 
     sim.simxFinish(-1)
 
-    # Create new connexion
+    # Create new connection
     clientID = sim.simxStart("127.0.0.1", 19999, True, True, 5000, 5)
 
     if (clientID != -1):
-        print("Connexion OK")
+        print("Connection OK")
     else:
-        print("Fatal error - No connexion")
+        print("Fatal error - No connection")
 
     robot = KukaYouBotClass(clientID)    
-    robot.move_movile_robot_motors([5,5,5,5])
+    robot.move_mobile_robot_motors([5,5,5,5])
 
-    # End connexion 
+    # End connection 
     sim.simxFinish(-1)  
 
 if __name__ == "__main__":

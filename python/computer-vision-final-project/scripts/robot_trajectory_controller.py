@@ -85,15 +85,21 @@ class TrajectoryController:
         return orientation[1][1]
 
     def go_to_angle(self, desired_angle, error_k_1, ia_acum, ts):
+        """
+        This is a python method which implements a simple PID controller
+        in order to control the orientation of a mobile robot using 
+        its pose model and the angular velocity as control signal.
+        :param: desired_angle: Desired angle to reach by the robot
+        :param: error_k_1: First delay of the error signal
+        :param: ia_acum: Amount of area of the integral term 
+        :param: ts: Control period of time in seconds
+        """
         # Define the controller's parameters
-        KP = 0.1
-        KI = 0
-        KD = 0.5    
+        KP = 1.2
+        KI = 0.0
+        KD = 0.0    
         # Calculate the error signal 
-        error  = desired_angle - self.get_orientation()
-        error = math.atan2(math.sin(error), math.cos(error))
-
-        print(f"error signal: {error}")
+        error  = -desired_angle + self.get_orientation()
 
         # Calculate the control signal 
         p_term = error
@@ -105,13 +111,24 @@ class TrajectoryController:
 
 
     def go_to_goal(self, desired_position, error_k_1, ia_acum, ts):
+        """
+        This is a python method that implements a simple PID controller 
+        in order to control the location in the space (x position and y position)
+        of a mobile robot using the pose model of the robot and the speed in 
+        each direction as control signals.
+        :param: desired_angle: Desired angle to reach by the robot
+        :param: error_k_1: First delay of the error signal
+        :param: ia_acum: Amount of area of the integral term 
+        :param: ts: Control period of time in seconds
+        """
         # Define the controller's parameters
-        KP = [1,1]
-        KI = [1,1]
-        KD = [1,1]
+        KP = [0.7,0.7]
+        KI = [0,0]
+        KD = [0,0]
 
         error = [0,0]
-        w = [0,0]
+        i_term = [0,0]
+        v = [0,0]
 
         for i in iter(range(2)):
             # Calculate the error signal
@@ -120,22 +137,89 @@ class TrajectoryController:
 
             # Calculate the control signal 
             p_term = error[i]
-            i_term = error[i]*ts + ia_acum[i]
+            i_term[i] = error[i]*ts + ia_acum[i]
             d_term = (error[i] - error_k_1[i])/ts
-            w[i] = p_term*KP[i] + i_term*KI[i] + d_term*KD[i]
+            v[i] = p_term*KP[i] + i_term[i]*KI[i] + d_term*KD[i]
 
-        return w, error, i_term
+        return v, error, i_term
 
     def avoid_obstacles(self):
         pass
 
-    def test(self):
+    def monitoring_variables(self):
         while (True):
             position = self.get_position()
             orientation = self.get_orientation()
 
             print(f"Position: {position} orientation: {orientation}")
 
+def test_go_to_angle(clientID):
+    controller = TrajectoryController(clientID)
+
+    # Control variables
+    control_period = 0.1
+    error = [0.0,0.0]
+    it_acum = 0
+    it_term_k_1 = 0
+    setpoint = -1.5
+    eps = 0.001
+
+    last_time = 0
+    w = 0
+
+    # Only proceed to control calculation in correct sample time multiple
+    sample_time_condition = time.time() - last_time >= control_period
+
+    while (1):
+        if (sample_time_condition):
+            w, error[0], it_term_k_1 = controller.go_to_angle(setpoint,error[0],it_acum,control_period)
+
+            wheel_speed = controller.mobile_robot_model(0,0,w)
+
+            if (abs(error[0]) >= 0 - eps and abs(error[0]) <= 0 + eps):
+                controller.robot.move_mobile_robot_motors([0,0,0,0])
+            else:
+                controller.robot.move_mobile_robot_motors(wheel_speed)                
+
+            it_acum += it_term_k_1
+
+
+def test_go_to_goal(clientID):
+    controller = TrajectoryController(clientID)
+
+    # Control variables
+    control_period = 0.1
+    error = [0.0,0.0,0.0,0.0]
+    it_acum = [0.0,0.0]
+    it_term_k_1 = [0.0,0.0]
+    setpoint = [11.22,-9.82]
+    eps = 0.001
+
+    last_time = 0
+    v = [0,0]
+
+    # Only proceed to control calculation in correct sample time multiple
+    sample_time_condition = time.time() - last_time >= control_period
+
+    while (1):
+        if (sample_time_condition):
+            v, buff_error, it_term_k_1 = controller.go_to_goal(setpoint,[error[0],error[2]],it_acum,control_period)
+            error[0], error[2] = (buff_error[0], buff_error[1])
+
+            wheel_speed = controller.mobile_robot_model(v[0],v[1],0)
+
+            # Control condition action for x position control
+            x_condition = (abs(error[0]) >= 0 - eps and abs(error[0]) <= 0 + eps)
+            # Control condition action for x position control
+            y_condition = (abs(error[2]) >= 0 - eps and abs(error[2]) <= 0 + eps)
+
+            if (x_condition and y_condition):
+                controller.robot.move_mobile_robot_motors([0,0,0,0])
+            else:
+                controller.robot.move_mobile_robot_motors(wheel_speed) 
+
+            it_acum[0] += it_term_k_1[0]           
+            it_acum[1] += it_term_k_1[1]
 
 
 
@@ -151,35 +235,8 @@ def main():
     else:
         print("Fatal error - No connection")
 
-    controller = TrajectoryController(clientID)
-
-    # Control variables
-    control_period = 0.1
-    error = [0.0,0.0]
-    it_acum = 0
-    it_term_k_1 = 0
-    setpoint = 3
-    eps = 0.01
-
-    last_time = 0
-    w = 0
-
-    # Only proceed to control calculation in correct sample time multiple
-    sample_time_condition = time.time() - last_time >= control_period
-
-    while (1):
-        if (sample_time_condition):
-            w, error[0], it_term_k_1 = controller.go_to_angle(setpoint,error[0],it_acum,control_period)
-
-            wheel_speed = controller.mobile_robot_model(0,0,w)
-
-            if (abs(error[0]) >= 1 - eps and abs(error[0]) <= 1 + eps):
-                controller.robot.move_movile_robot_motors([0,0,0,0])
-            else:
-                controller.robot.move_movile_robot_motors(wheel_speed)                
-
-            it_acum += it_term_k_1
-
+    # Test function
+    # test_go_to_goal(clientID)
 
     # End connection 
     sim.simxFinish(-1)  
