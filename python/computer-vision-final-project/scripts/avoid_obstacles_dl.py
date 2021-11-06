@@ -21,14 +21,20 @@ class AvoidObstaclesDL:
     def __init__(self, robot):
         # Define the robot's parameters
         self.robot = robot
+        self.CONS_DIST = 20985.274362037777
 
         # Define variables for the deeplearning object detection algorithm
         self.yolo_files_path = os.path.join(ASSETS_FOLDER, "yolo")
         self.load_yolo_algorithm()
 
+        # Define variables for the avoid obstacle algorithm 
+        self.cameras = {
+            "x_locations": [],
+            "distances": []
+        }
+
         # Define thread's variables for the object detection implementation 
         self.cameras_threads = [thr.Thread(target=self.detect_objects(x)) for x in iter(range(4))]
-
 
     def load_yolo_algorithm(self):
         # First it is mandatory to load the yolo algorithm
@@ -73,7 +79,7 @@ class AvoidObstaclesDL:
                     scores = detection[5:]
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
-                    if confidence > 0.5: # Just show the detections with an accuracy greater than 50%
+                    if (confidence) > 0.5: # Just show the detections with an accuracy greater than 50%
                         # Object detected
                         center_x = int(detection[0] * width)
                         center_y = int(detection[1] * height)
@@ -91,6 +97,10 @@ class AvoidObstaclesDL:
             # Sometimes happen that we got more than 1 single box per object, to avoid this the following function is used
             indexes = cv.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
 
+            # Define some important variables for the avoid obstacle algorithm
+            distances = []
+            x_locations = []
+
             # Get the objects features and show the image with the objects detected
             font = cv.FONT_HERSHEY_PLAIN
             for i in range(len(boxes)):
@@ -99,26 +109,19 @@ class AvoidObstaclesDL:
                     label = str(self.classes[class_ids[i]])
                     color = self.colors[i]
                     cv.rectangle(img, (x, y), (x + w, y + h), color, 2)
-                    area = (x + w)*(y + h)
-                    # print(f"object: {label} Area: {area}")
+                    distances.append(self.CONS_DIST/((x + w)*(y + h)))
+                    x_locations.append(x + w/2 - width/2)
                     cv.putText(img, label, (x, y + 30), font, 1, color, 2)
-            # img = cv.resize(img, [o_h,o_w])        
+            # img = cv.resize(img, [o_h,o_w]) 
+
             cv.imshow(f"Image {cam}", img)
+            self.cameras["distances"].append(distances)
+            self.cameras["x_locations"].append(x_locations)
         except:
             print("An error just happen!!!")
 
-
-
-def test_object_detection(robot):
-    # Preprocessing of the image
-    for i in iter(range(4)):
-        img = np.array(robot.image[i], dtype = np.uint8)
-        img.resize([robot.resolution[i][0], robot.resolution[i][1], 3])
-        img = np.rot90(img,2)
-        img = np.fliplr(img)
-        img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
-        
-        cv.imshow(f"Robot Image {i+1}", img)
+    def get_object_vectors(self):
+        pass
 
 
 def main():
@@ -144,6 +147,8 @@ def main():
 
         for cm in controller.cameras_threads:
             cm.join()
+        
+        print(controller.cameras)
 
         if (cv.waitKey(1) & 0xFF == ord('q')):
             print("We are MELOS!!!")
