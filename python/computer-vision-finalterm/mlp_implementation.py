@@ -215,6 +215,8 @@ class MlpImplementation:
                         diago_mean2,
                         diago_mean3,
                         diago_mean4,
+                        corner_x,
+                        corner_y,
                         I2,
                         I3,
                         I4,
