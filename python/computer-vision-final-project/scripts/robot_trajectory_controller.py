@@ -117,7 +117,7 @@ class TrajectoryController:
         :param: ts: Control period of time in seconds
         """
         # Define the controller's parameters
-        KP = [0.7,0.7]
+        KP = [1.0,0.7]
         KI = [0,0]
         KD = [0,0]
 
@@ -152,6 +152,7 @@ class TrajectoryController:
             direction = -(x_centers[i]/abs(x_centers[i]))
 
             if (center_condition and dist_condition):
+                print("moral")
                 wheel_speed = self.mobile_robot_model(direction*0.5,0,0)
                 self.robot.move_mobile_robot_motors(wheel_speed)
 
@@ -176,10 +177,10 @@ def test_go_to_angle(clientID):
     last_time = 0
     w = 0
 
-    # Only proceed to control calculation in correct sample time multiple
-    sample_time_condition = time.time() - last_time >= control_period
 
     while (1):
+        # Only proceed to control calculation in correct sample time multiple
+        sample_time_condition = time.time() - last_time >= control_period
         if (sample_time_condition):
             w, error[0], it_term_k_1 = controller.go_to_angle(setpoint,error[0],it_acum,control_period)
 
@@ -207,10 +208,10 @@ def test_go_to_goal(clientID):
     last_time = 0
     v = [0,0]
 
-    # Only proceed to control calculation in correct sample time multiple
-    sample_time_condition = time.time() - last_time >= control_period
 
     while (1):
+        # Only proceed to control calculation in correct sample time multiple
+        sample_time_condition = time.time() - last_time >= control_period
         if (sample_time_condition):
             v, buff_error, it_term_k_1 = controller.go_to_goal(setpoint,[error[0],error[2]],it_acum,control_period)
             error[0], error[2] = (buff_error[0], buff_error[1])
@@ -245,7 +246,7 @@ def main():
         print("Fatal error - No connection")
 
     # Test function
-    # test_go_to_goal(clientID)
+    test_go_to_goal(clientID)
 
     # End connection 
     sim.simxFinish(-1)  
