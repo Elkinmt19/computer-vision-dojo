@@ -18,14 +18,16 @@ import get_path_assests_folder as gpaf
 ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 class AvoidObstaclesDL:
-    def __init__(self, robot):
+    def __init__(self, robot, show_cameras):
         # Define the robot's parameters
         self.robot = robot
         self.CONS_DIST = 20985.274362037777
+        self.ANGLE = 0.4333843118451189
 
         # Define variables for the deeplearning object detection algorithm
         self.yolo_files_path = os.path.join(ASSETS_FOLDER, "yolo")
         self.load_yolo_algorithm()
+        self.show_cameras = show_cameras
 
         # Define variables for the avoid obstacle algorithm 
         self.cameras = {
@@ -114,15 +116,12 @@ class AvoidObstaclesDL:
                     cv.putText(img, label, (x, y + 30), font, 1, color, 2)
             # img = cv.resize(img, [o_h,o_w]) 
 
-            cv.imshow(f"Image {cam}", img)
+            if (self.show_cameras):
+                cv.imshow(f"Image {cam}", img)
             self.cameras["distances"].append(distances)
             self.cameras["x_locations"].append(x_locations)
         except:
             print("An error just happen!!!")
-
-    def get_object_vectors(self):
-        pass
-
 
 def main():
     # End connection 
@@ -141,7 +140,7 @@ def main():
 
     while (1):
         robot.camera_buffer()
-        controller = AvoidObstaclesDL(robot)
+        controller = AvoidObstaclesDL(robot, True)
         for cm in controller.cameras_threads:
             cm.start()
 
