@@ -2,6 +2,7 @@
 import sys
 import os
 import math
+from matplotlib.pyplot import contour
 
 # External imports
 import numpy as np 
@@ -18,6 +19,7 @@ class MlpImplementation:
     def __init__(self):
         self.load_models()
         self.load_image()
+        self.load_video()
 
     def load_models(self):
         self.ss_model = joblib.load(self.models_path("model_scaling_all_characters.pkl"))
@@ -32,6 +34,14 @@ class MlpImplementation:
         )
         self.image = cv.imread(image_path, 1)
 
+    def laod_video(self):
+        video_path = os.path.join(
+            ASSETS_FOLDER,
+            "videos/",
+            "numbers_letters_test.mp4"
+        )
+        self.video = cv.imread(video_path, 1)
+
     def models_path(self, model_name):
         model_path = os.path.join(
             ASSETS_FOLDER,
@@ -40,38 +50,17 @@ class MlpImplementation:
         )
         return model_path
 
-    def get_letters(self):
-        words_coordinates = [
-            np.array([[83, 74],[160, 240]]),
-            np.array([[83, 283],[160, 453]]),
-            np.array([[83, 508],[160, 640]]),
-            np.array([[83, 672],[160, 845]]),
-            np.array([[83, 876],[160, 1040]]),
-            np.array([[83, 1068],[160, 1297]]),
-        ]
+    def get_con_letters(self, image):
+        # Binarize the image
+        binary_image = cv.cvtColor(image.copy(),cv.COLOR_BGR2GRAY)
+        cv.imshow("image", binary_image)
 
-        self.words = list()
-        self.letters_words = list()
+        # Get the contours of the images
+        self.letters, _ = cv.findContours(binary_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
 
-        for coor in words_coordinates:
-            for j in iter(range(coor.shape[1])):
-                coor[:,j] = np.sort(coor[:,j], 0)
-
-            roiImage = self.image[
-                coor[0,0]:coor[1,0],
-                coor[0,1]:coor[1,1]
-            ]
-
-            self.words.append(roiImage)
+        # Filter the contours
+        self.letters = [x for x in self.letters if (x.shape[0] >= 20)]
         
-        word_wei = [39, 41, 35, 41, 35, 45]
-
-        for w in iter(range(len(self.words))):
-            letters_buff = list()
-            for i in iter(range(int(self.words[w].shape[1]/word_wei[w]))):
-                roiImage_2 = self.words[w][:,i*word_wei[w]:(i+1)*word_wei[w]]
-                letters_buff.append(roiImage_2)
-            self.letters_words.append(letters_buff)
 
     def corner_detection(self, image):
         gray = np.float32(image)
@@ -240,58 +229,75 @@ class MlpImplementation:
                 except:
                     print("An error has occured")
 
-    def mlp_implementation(self):
+    def mlp_implementation(self, image, type):
         CHARACTERS_LIST = [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "P",
-            "R",
-            "S",
-            "T",
-            "V",
-            "X",
-            "Z"
+        "0","1",
+        "2","3",
+        "4","5",
+        "6","7",
+        "8","9",
+        "A","B",
+        "C","D",
+        "E","F",
+        "G","H",
+        "I","J",
+        "K","L",
+        "M","N",
+        "O","P",
+        "Q","R",
+        "S","T",
+        "U","V",
+        "W","X",
+        "Y","Z"
         ]
 
-        self.get_letters()
-        result_string = ""
+        self.get_con_letters(image)
+        for lt in self.letters:
+            x,y,w,h = cv.boundingRect(lt)
 
-        for word in self.letters_words:
-            for letter in word:
-                X = self.extract_features(letter)
+            M = cv.moments(lt)
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
 
-                # Scaling the data
-                X = self.ss_model.transform(X)
+            roiImage = self.image[
+                y:y+h,
+                x:x+w
+            ]
+            
+            X = self.extract_features(roiImage)
 
-                # Make PCA analysis
-                X = self.pca_model.transform(X)
+            # Scaling the data
+            X = self.ss_model.transform(X)
 
-                # Predicting the letter of the image
-                result = self.mlp_model.predict(X)
+            # Make PCA analysis
+            X = self.pca_model.transform(X)
 
-                # Fulfill the string
-                result_string += CHARACTERS_LIST[int(result[0])]
-            result_string += " "
+            # Predicting the letter of the image
+            result = self.mlp_model.predict(X)
+
+            font = cv.FONT_HERSHEY_SIMPLEX
+            cv.putText(self.image, CHARACTERS_LIST[int(result[0])],(cx,cy+50), font, 2.3,(255,255,255),2,cv.LINE_AA)
 
         # Put text in the image
-        print(result_string)
-        font = cv.FONT_HERSHEY_SIMPLEX
-        cv.putText(self.image,result_string,(82,233), font, 2.3,(255,255,255),2,cv.LINE_AA)
         cv.imshow("Predictive Sentense", self.image)
-        cv.waitKey(0)
+        if (type):
+            cv.waitKey(0)
+        else:
+            cv.waitKey(1)
+
+    def mlp_video_implementation(self):
+        while(self.video.isOpened()):
+            ret, frame = self.video.read()
+            if (ret == False):
+                print("There is no image, the video is stoped")
+                break
             
+            self.mlp_implementation(frame, False)
 
 
 
 def main():
-    mlp_implementation = MlpImplementation().mlp_implementation()
+    mlp_implementation = MlpImplementation().mlp_video_implementation()
 
 if __name__ == "__main__":
     sys.exit(main())

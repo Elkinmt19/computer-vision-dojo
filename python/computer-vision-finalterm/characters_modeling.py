@@ -222,9 +222,9 @@ class ModelTraining:
 
 def main():
     mlp_params = [
-        "relu",
-        (10, 50),
-        5000,
+        "tanh",
+        (100, 50),
+        2000,
         0.0001
     ]
 
@@ -233,7 +233,7 @@ def main():
         "rbf"
     ]
 
-    model_train = ModelTraining("mlp", mlp_params, False, False)
+    model_train = ModelTraining("mlp", mlp_params, True, False)
     model_train.train_model()
 
 

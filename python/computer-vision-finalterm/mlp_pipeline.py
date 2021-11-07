@@ -22,8 +22,8 @@ class PipelineMLP:
         ]
         self.pipeline = {
             "hidden-layers": [
-                (1000,),
-                (1000,5000)
+                (100,),
+                (100,50)
             ],
             "activation-function": [
                 "relu",

@@ -45,7 +45,7 @@ class CharactersDatasetPreprocessing:
     def get_character_paths(self, character):
         # Universal path depending of the extention of the image
         path_characters = os.path.join(
-            ASSETS_FOLDER, "imgs", f"letters/{character}/*.jpg")
+            ASSETS_FOLDER, "imgs", f"numbers_letters/{character}/*.jpg")
 
         # Function to find the images of the dataset
         self.img_names = glob(path_characters)
@@ -282,24 +282,26 @@ class CharactersDatasetPreprocessing:
 
     def complete_characters_dataset(self):
         character_list = [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "P",
-            "R",
-            "S",
-            "T",
-            "V",
-            "X",
-            "Z"
+            "0","1",
+            "2","3",
+            "4","5",
+            "6","7",
+            "8","9",
+            "A","B",
+            "C","D",
+            "E","F",
+            "G","H",
+            "I","J",
+            "K","L",
+            "M","N",
+            "O","P",
+            "Q","R",
+            "S","T",
+            "U","V",
+            "W","X",
+            "Y","Z"
         ]
-        for i in iter(range(10)):
+        for i in iter(range(len(character_list))):
             # Get the number paths
             self.get_character_paths(character_list[i])
 

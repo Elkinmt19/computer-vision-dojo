@@ -20,6 +20,6 @@ img = cv.imread(image_relative_path,1)
 
 # cv.imshow("test gray image", cv.cvtColor(img,cv.COLOR_RGB2GRAY))
 
-# seg = igs.ImageSegmentation(img).binarization()
+seg = igs.ImageSegmentation(img).binarization()
 # seg = igs.ImageSegmentation(img).color_segmentation("HSV")
-roi_img = igs.ImageSegmentation(img).get_region_of_interest()
+# roi_img = igs.ImageSegmentation(img).get_region_of_interest()
