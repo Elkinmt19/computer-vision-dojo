@@ -37,7 +37,7 @@ class CharactersDatasetPreprocessing:
 
         # Create a new excel file with a new sheet to work with
         path_dataset_file = os.path.join(
-            ASSETS_FOLDER, "xlsx", "letters_dataset.xlsx")
+            ASSETS_FOLDER, "xlsx", "characters_dataset.xlsx")
         self.workbook = xlsxwriter.Workbook(path_dataset_file)
         self.worksheet = self.workbook.add_worksheet('characters-data')
         self.worksheet_pca = self.workbook.add_worksheet('characters-data_pca')
@@ -45,7 +45,7 @@ class CharactersDatasetPreprocessing:
     def get_character_paths(self, character):
         # Universal path depending of the extention of the image
         path_characters = os.path.join(
-            ASSETS_FOLDER, "imgs", f"bike_characters/{character}/*.jpg")
+            ASSETS_FOLDER, "imgs", f"numbers_letters/{character}/*.jpg")
 
         # Function to find the images of the dataset
         self.img_names = glob(path_characters)
@@ -71,7 +71,6 @@ class CharactersDatasetPreprocessing:
         dilate_kernel = cv.getStructuringElement(cv.MORPH_RECT, (2,2))
         for fn in self.img_names:
             img = cv.imread(fn, 1)
-
             gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
             blur = cv.medianBlur(gray,5)
 
@@ -88,6 +87,9 @@ class CharactersDatasetPreprocessing:
 
             # Process the contornous
             contours = [x for x in contours if (x.shape[0] >= 20)]
+
+            # Vector with the object's features
+            VectorCarac = []
 
             # Get the 7 moments of hu and other characteristics
             for cnt in contours:
@@ -113,94 +115,34 @@ class CharactersDatasetPreprocessing:
                     try:
                         # Calculate the object's features
                         x,y,w,h = cv.boundingRect(cnt_2)
-                        M = cv.moments(cnt_2)
-                        cx = int(M['m10']/M['m00'])
-                        cy = int(M['m01']/M['m00'])
-                        A = cv.contourArea(cnt_2)
-                        p = cv.arcLength(cnt_2,True)
-                        Comp = A/float(p*p)
-                        Circ = p**2/(4*math.pi*A)
-                        r = A/(w*h)
-                        RA = w/float(h)
-                        Hu = cv.HuMoments(M)
 
-                        # Calculate additional features
-                        diago_mean = 0
-                        diago_mean1 = 0
-                        diago_mean2 = 0
-                        diago_mean3 = 0
-                        diago_mean4 = 0
-                        y_mean = 0
-                        x_mean = 0
-                        y_mean_half_l = 0
-                        x_mean_half_l = 0
-                        y_mean_half_u = 0
-                        x_mean_half_u = 0
-                        y_mean_start = 0
-                        x_mean_start = 0
-                        y_mean_last = 0
-                        x_mean_last = 0
-                        for i in iter(range(binary_image_res.shape[0])):
-                            for j in iter(range(binary_image_res.shape[1])):
-                                if (i == j):
-                                    diago_mean += binary_image_res[i,j]
-                                    diago_mean1 += binary_image_res[i - 10,j]
-                                    diago_mean2 += binary_image_res[i + 10,j]
-                                    diago_mean3 += binary_image_res[i - 20,j]
-                                    diago_mean4 += binary_image_res[i + 20,j]
-                                if (i == int(binary_image_res.shape[0]/2)):
-                                    y_mean += binary_image_res[i,j]
-                                if (j == int(binary_image_res.shape[1]/2)):
-                                    x_mean += binary_image_res[i,j]
-                                if (i == int(binary_image_res.shape[0]/4)):
-                                    y_mean_half_l += binary_image_res[i,j]
-                                if (j == int(binary_image_res.shape[1]/4)):
-                                    x_mean_half_l += binary_image_res[i,j] 
-                                if (i == int((binary_image_res.shape[0]*3)/4)):
-                                    y_mean_half_u += binary_image_res[i,j]
-                                if (j == int((binary_image_res.shape[1]*3)/4)):
-                                    x_mean_half_u += binary_image_res[i,j]
-                                if (i == 0):
-                                    y_mean_start += binary_image_res[i,j]
-                                if (j == 0):
-                                    x_mean_start += binary_image_res[i,j] 
-                                if (i == int(binary_image_res.shape[0]-1)):
-                                    y_mean_last += binary_image_res[i,j]
-                                if (j == int(binary_image_res.shape[1]-1)):
-                                    x_mean_last += binary_image_res[i,j]  
+                        if(cv.contourArea(cnt_2)>100):
+                            # Divided the image image
+                            for j in range(0,4):  #Se dividió 20 y 40 por 5
+                                for i in range(0,6):
+                                    imgRoi_2 = img_resize[i*5:(i+1)*5, j*5:(j+1)*5] #Acá se estan haciento recortes de 5x5 a la imagen, como filtros
+                                    hh,ww = imgRoi_2.shape[:2]
+                                    for k in range(0,hh):
+                                        # Count the white pixels of the peace of the image
+                                        valRow = cv.countNonZero(imgRoi_2[k:k+1,:])                        
+                                        diag = np.diagonal(imgRoi_2[k:k+1,:])                            
+                                        val_diag = (diag[0])/255.0
+                                        valRow = valRow/hh
+                                        VectorCarac.append(valRow)
+                                        VectorCarac.append(val_diag)
+                                    for m in range(0,ww):
+                                        #print("por columnas...")
+                                        #cv.imshow("imgRoi_2_columnas",cv.resize(imgRoi_2[:,m:m+1],(10,50)))
+                                        valCol = cv.countNonZero(imgRoi_2[:,m:m+1])
+                                        diag = np.diagonal(imgRoi_2[:,m:m+1])
+                                        val_diag = (diag[0])/255.0
+                                        valCol = valCol/hh
+                                        VectorCarac.append(valCol)
+                                        VectorCarac.append(val_diag)
 
                         # Vector with the object's features
-                        VectorCarac = np.array([
-                            A,
-                            p,
-                            Comp,
-                            Circ,
-                            r,
-                            RA,
-                            diago_mean,
-                            diago_mean1,
-                            diago_mean2,
-                            diago_mean3,
-                            diago_mean4,
-                            corner_x,
-                            corner_y,
-                            y_mean,
-                            x_mean,
-                            y_mean_half_l,
-                            x_mean_half_l,
-                            y_mean_half_u,
-                            x_mean_half_u,
-                            y_mean_start,
-                            x_mean_start,
-                            y_mean_last,
-                            x_mean_last,
-                            Hu[0][0],
-                            Hu[1][0],
-                            Hu[2][0],
-                            Hu[3][0],
-                            Hu[4][0],
-                            Hu[5][0],
-                            Hu[6][0]],
+                        VectorCarac = np.array(
+                            VectorCarac,
                             dtype = np.float32
                         )
 
@@ -226,11 +168,12 @@ class CharactersDatasetPreprocessing:
         X = ss.fit_transform(self.characters_features)
 
         # Perform the PCA analysis 
-        pca = decomposition.PCA(n_components=30)
-        pca.fit(X)
+        # pca = decomposition.PCA(n_components=4)
+        # pca.fit(X)
 
         # Calculate the scores values
-        scores = pca.transform(X)
+        # scores = pca.transform(X)
+        scores = ss.transform(X)
 
         # Save the data in the excel file
         for i in iter(range(scores.shape[0])):
@@ -239,29 +182,29 @@ class CharactersDatasetPreprocessing:
 
         # Save important models
         if (self.model_flag):
-            joblib.dump(ss, self.models_path("model_scaling_all_letters.pkl"))
-            joblib.dump(pca, self.models_path("model_pca_all_letters.pkl"))
+            joblib.dump(ss, self.models_path("model_scaling_all_characters.pkl"))
+            # joblib.dump(pca, self.models_path("model_pca_all_characters.pkl"))
 
         # Explained variance for each PC
-        explained_variance = pca.explained_variance_ratio_
-        explained_variance = np.insert(explained_variance, 0, 0)
+        # explained_variance = ss.explained_variance_ratio_
+        # explained_variance = np.insert(explained_variance, 0, 0)
 
-        # Combining the dataframe
-        pc_df = [f"PC{x}" for x in iter(range(scores.shape[1] + 1))]
-        pc_df = pd.DataFrame(pc_df, columns=['PC'])
-        explained_variance_df = pd.DataFrame(explained_variance, columns=['Explained Variance'])
+        # # Combining the dataframe
+        # pc_df = [f"PC{x}" for x in iter(range(scores.shape[1] + 1))]
+        # pc_df = pd.DataFrame(pc_df, columns=['PC'])
+        # explained_variance_df = pd.DataFrame(explained_variance, columns=['Explained Variance'])
 
-        df_explained_variance = pd.concat([pc_df, explained_variance_df], axis=1)
+        # df_explained_variance = pd.concat([pc_df, explained_variance_df], axis=1)
 
-        fig = px.bar(
-            df_explained_variance, 
-            x='PC', y='Explained Variance',
-            text='Explained Variance',
-            width=800
-        )
+        # fig = px.bar(
+        #     df_explained_variance, 
+        #     x='PC', y='Explained Variance',
+        #     text='Explained Variance',
+        #     width=800
+        # )
 
-        fig.update_traces(texttemplate='%{text:.3f}', textposition='outside')
-        fig.show()
+        # fig.update_traces(texttemplate='%{text:.3f}', textposition='outside')
+        # fig.show()
     
     def models_path(self, model_name):
         model_path = os.path.join(
@@ -272,15 +215,12 @@ class CharactersDatasetPreprocessing:
         return model_path
 
     def complete_characters_dataset(self):
-        character_list_numbers = [
+        character_list = [
             "0","1",
             "2","3",
             "4","5",
             "6","7",
-            "8","9"
-        ]
-
-        character_list_letters = [
+            "8","9",
             "A","B",
             "C","D",
             "E","F",
@@ -295,10 +235,9 @@ class CharactersDatasetPreprocessing:
             "W","X",
             "Y","Z"
         ]
-
-        for i in iter(range(len(character_list_letters))):
+        for i in iter(range(len(character_list))):
             # Get the number paths
-            self.get_character_paths(character_list_letters[i])
+            self.get_character_paths(character_list[i])
 
             # Process the data of the character
             self.character_data_preprocessing(i)

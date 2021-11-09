@@ -42,7 +42,7 @@ class ModelTraining:
         # Create a new excel file with a new sheet to work with
         path_dataset_file = os.path.join(
             ASSETS_FOLDER,
-            "xlsx", "characters_dataset.xlsx"
+            "xlsx", "letters_dataset.xlsx"
         )
         self.workbook = xlrd.open_workbook(path_dataset_file)
 
@@ -114,7 +114,7 @@ class ModelTraining:
 
         # Save the resulting models
         if (self.model_flag):
-            joblib.dump(mlp, self.models_path("model_mlp_characters.pkl"))
+            joblib.dump(mlp, self.models_path("model_mlp_letters.pkl"))
 
         # Return the model and the accuracy
         return mlp, result_accuracy*100
@@ -233,7 +233,7 @@ def main():
         "rbf"
     ]
 
-    model_train = ModelTraining("mlp", mlp_params, True, False)
+    model_train = ModelTraining("mlp", mlp_params, True, True)
     model_train.train_model()
 
 

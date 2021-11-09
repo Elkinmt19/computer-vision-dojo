@@ -19,28 +19,25 @@ class MlpImplementation:
     def __init__(self):
         self.load_models()
         self.load_image()
-        self.load_video()
 
     def load_models(self):
-        self.ss_model = joblib.load(self.models_path("model_scaling_all_characters.pkl"))
-        self.pca_model = joblib.load(self.models_path("model_pca_all_characters.pkl"))
-        self.mlp_model = joblib.load(self.models_path("model_mlp_characters.pkl"))
+        self.ss_model_numbers = joblib.load(self.models_path("model_scaling_all_numbers.pkl"))
+        self.pca_model_numbers = joblib.load(self.models_path("model_pca_all_numbers.pkl"))
+        self.mlp_model_numbers = joblib.load(self.models_path("model_mlp_numbers.pkl"))
+
+        self.ss_model_letters = joblib.load(self.models_path("model_scaling_all_letters.pkl"))
+        self.pca_model_letters = joblib.load(self.models_path("model_pca_all_letters.pkl"))
+        self.mlp_model_letters = joblib.load(self.models_path("model_mlp_letters.pkl"))
 
     def load_image(self):
         image_path = os.path.join(
             ASSETS_FOLDER,
-            "imgs/tests/test_50",
-            "test_50.png"
+            "imgs/Test",
+            "CC_6.jpg"
         )
-        self.image = cv.imread(image_path, 1)
+        self.image = cv.imread(image_path, 0)
 
-    def laod_video(self):
-        video_path = os.path.join(
-            ASSETS_FOLDER,
-            "videos/",
-            "numbers_letters_test.mp4"
-        )
-        self.video = cv.imread(video_path, 1)
+        _,self.image = cv.threshold(self.image,100,255,cv.THRESH_BINARY_INV)
 
     def models_path(self, model_name):
         model_path = os.path.join(
@@ -50,16 +47,32 @@ class MlpImplementation:
         )
         return model_path
 
-    def get_con_letters(self, image):
+    def get_con_letters(self):
         # Binarize the image
-        binary_image = cv.cvtColor(image.copy(),cv.COLOR_BGR2GRAY)
-        cv.imshow("image", binary_image)
+        binary_image = self.image
 
+        binary_image = cv.resize(binary_image, None, fx=10, fy=10)
+
+        num_image = binary_image[
+            115:400,
+            500:870
+        ]
+
+        self.num_image = num_image
+
+        letters_image = binary_image[
+            115:400,
+            57:462
+        ]
+
+        self.letters_image = letters_image
         # Get the contours of the images
-        self.letters, _ = cv.findContours(binary_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
+        self.numbers, _ = cv.findContours(num_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
+        self.letters, _ = cv.findContours(letters_image.copy(), cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
 
         # Filter the contours
-        self.letters = [x for x in self.letters if (x.shape[0] >= 20)]
+        self.letters = [x for x in self.letters if (x.shape[0] >= 13)]
+        self.numbers = [x for x in self.numbers if (x.shape[0] >= 20)]
         
 
     def corner_detection(self, image):
@@ -78,34 +91,13 @@ class MlpImplementation:
 
         return xmean, ymean
 
-    def get_invariant_moments(self, M, cx, cy):
-        # Calculate the invariant moments on translational transformations
-        u11 = M['m11'] - cx*M['m01']
-        u20 = M['m20'] - cx*M['m10']
-        u02 = M['m02'] - cy*M['m01']
-        u21 = M['m21'] - 2*cx*M['m11'] - cy*M['m20'] - 2*(cx**2)*M['m01']
-        u12 = M['m12'] - 2*cy*M['m11'] - cx*M['m02'] - 2*(cy**2)*M['m10']
-        u30 = M['m30'] - 3*cx*M['m20'] + 2*(cx**2)*M['m10']
-        u03 = M['m03'] - 3*cy*M['m02'] + 2*(cy**2)*M['m01']
-
-        # Calculate the invariant moments on small transformations
-        I1 = (1/M['m00']**4)*(u20*u02 - u11**2)
-        I2 = (1/M['m00']**10)*((-u30**2)*(u03**2) + 6*u30*u21*u12*u03 - 4*u30*(u12**3) - 4*(u21**3)*u03 + 3*(u21**2)*(u12**2))
-        I3 = (1/M['m00']**7)*(u20*u21*u03 - u20*(u12**2) - u11*u30*u03 + u11*u21*u12 + u02*u30*u12 - u02*(u21**2))
-        I4 = (1/M['m00']**11)*((-u20**3)*(u03**2) + 6*(u20**2)*u11*u12*u03 - 3*(u20**2)*u02*(u12**2) - 6*u20*(u11**2)*u21*u03\
-            - 6*u20*(u11**2)*(u12**2) + 12*u20*u11*u02*u21*u12 - 3*u20*(u02**2)*(u21**2) + 2*(u11**3)*u30*u03 + 6*(u11**2)*u02*u30*u12\
-            - 6*(u11**2)*u02*(u21**2) + 6*u11*(u02**2)*u30*u21 - (u02**3)*(u30**2))
-
-        return I1, I2, I3, I4
-
     def extract_features(self, img):
         # Define kernels for the filters
         erode_kernel = cv.getStructuringElement(cv.MORPH_RECT , (3,3))
         dilate_kernel = cv.getStructuringElement(cv.MORPH_RECT, (3,3))
 
-        gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
     
-        blur = cv.medianBlur(gray,5)
+        blur = cv.medianBlur(img,5)
 
         # erode filter - to erode an image
         erode_image = cv.erode(blur, erode_kernel, iterations=1)
@@ -155,9 +147,6 @@ class MlpImplementation:
                     RA = w/float(h)
                     Hu = cv.HuMoments(M)
 
-                    # Calculate additional moments 
-                    I1, I2, I3, I4 = self.get_invariant_moments(M, cx, cy)
-
                     # # Calculate additional features
                     diago_mean = 0
                     diago_mean1 = 0
@@ -170,6 +159,10 @@ class MlpImplementation:
                     x_mean_half_l = 0
                     y_mean_half_u = 0
                     x_mean_half_u = 0
+                    y_mean_start = 0
+                    x_mean_start = 0
+                    y_mean_last = 0
+                    x_mean_last = 0
                     for i in iter(range(binary_image_res.shape[0])):
                         for j in iter(range(binary_image_res.shape[1])):
                             if (i == j):
@@ -189,7 +182,15 @@ class MlpImplementation:
                             if (i == int((binary_image_res.shape[0]*3)/4)):
                                 y_mean_half_u += binary_image_res[i,j]
                             if (j == int((binary_image_res.shape[1]*3)/4)):
-                                x_mean_half_u += binary_image_res[i,j] 
+                                x_mean_half_u += binary_image_res[i,j]
+                            if (i == 0):
+                                y_mean_start += binary_image_res[i,j]
+                            if (j == 0):
+                                x_mean_start += binary_image_res[i,j] 
+                            if (i == int(binary_image_res.shape[0]-1)):
+                                y_mean_last += binary_image_res[i,j]
+                            if (j == int(binary_image_res.shape[1]-1)):
+                                x_mean_last += binary_image_res[i,j]  
 
                     # Vector with the object's features
                     VectorCarac = np.array([
@@ -206,15 +207,16 @@ class MlpImplementation:
                         diago_mean4,
                         corner_x,
                         corner_y,
-                        I2,
-                        I3,
-                        I4,
                         y_mean,
                         x_mean,
                         y_mean_half_l,
                         x_mean_half_l,
                         y_mean_half_u,
                         x_mean_half_u,
+                        y_mean_start,
+                        x_mean_start,
+                        y_mean_last,
+                        x_mean_last,
                         Hu[0][0],
                         Hu[1][0],
                         Hu[2][0],
@@ -229,29 +231,59 @@ class MlpImplementation:
                 except:
                     print("An error has occured")
 
-    def mlp_implementation(self, image, type):
-        CHARACTERS_LIST = [
-        "0","1",
-        "2","3",
-        "4","5",
-        "6","7",
-        "8","9",
-        "A","B",
-        "C","D",
-        "E","F",
-        "G","H",
-        "I","J",
-        "K","L",
-        "M","N",
-        "O","P",
-        "Q","R",
-        "S","T",
-        "U","V",
-        "W","X",
-        "Y","Z"
+    def mlp_implementation(self):
+        NUMBERS_LIST = [
+            "0","1",
+            "2","3",
+            "4","5",
+            "6","7",
+            "8","9"
         ]
 
-        self.get_con_letters(image)
+        LETTERS_LIST = [
+            "A","B",
+            "C","D",
+            "E","F",
+            "G","H",
+            "I","J",
+            "K","L",
+            "M","N",
+            "O","P",
+            "Q","R",
+            "S","T",
+            "U","V",
+            "W","X",
+            "Y","Z"
+        ]
+
+        self.get_con_letters()
+        for lt in self.numbers:
+            x,y,w,h = cv.boundingRect(lt)
+
+            M = cv.moments(lt)
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
+
+            roiImage = self.num_image[
+                y:y+h,
+                x:x+w
+            ]
+
+            X = self.extract_features(roiImage)
+
+            # Scaling the data
+            X = self.ss_model_numbers.transform(X)
+
+            # Make PCA analysis
+            X = self.pca_model_numbers.transform(X)
+
+            # Predicting the letter of the image
+            result = self.mlp_model_numbers.predict(X)
+
+            font = cv.FONT_HERSHEY_SIMPLEX
+            cv.putText(self.num_image, NUMBERS_LIST[int(result[0])],(cx,cy+50), font, 1,(255,255,0),2,cv.LINE_AA)
+            print(NUMBERS_LIST[int(result[0])])
+
         for lt in self.letters:
             x,y,w,h = cv.boundingRect(lt)
 
@@ -259,45 +291,35 @@ class MlpImplementation:
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
 
-            roiImage = self.image[
+            roiImage = self.letters_image[
                 y:y+h,
                 x:x+w
             ]
-            
+
             X = self.extract_features(roiImage)
 
             # Scaling the data
-            X = self.ss_model.transform(X)
+            X = self.ss_model_letters.transform(X)
 
             # Make PCA analysis
-            X = self.pca_model.transform(X)
+            X = self.pca_model_letters.transform(X)
 
             # Predicting the letter of the image
-            result = self.mlp_model.predict(X)
+            result = self.mlp_model_letters.predict(X)
 
             font = cv.FONT_HERSHEY_SIMPLEX
-            cv.putText(self.image, CHARACTERS_LIST[int(result[0])],(cx,cy+50), font, 2.3,(255,255,255),2,cv.LINE_AA)
+            cv.putText(self.letters_image, LETTERS_LIST[int(result[0])],(cx,cy+50), font, 1,(255,255,0),2,cv.LINE_AA)
+            print(LETTERS_LIST[int(result[0])])
 
         # Put text in the image
-        cv.imshow("Predictive Sentense", self.image)
-        if (type):
-            cv.waitKey(0)
-        else:
-            cv.waitKey(1)
-
-    def mlp_video_implementation(self):
-        while(self.video.isOpened()):
-            ret, frame = self.video.read()
-            if (ret == False):
-                print("There is no image, the video is stoped")
-                break
-            
-            self.mlp_implementation(frame, False)
+        cv.imshow("Predictive letters", self.letters_image)
+        cv.imshow("Predictive numbers", self.num_image)
+        cv.waitKey(0)
 
 
 
 def main():
-    mlp_implementation = MlpImplementation().mlp_video_implementation()
+    mlp_implementation = MlpImplementation().mlp_implementation()
 
 if __name__ == "__main__":
     sys.exit(main())

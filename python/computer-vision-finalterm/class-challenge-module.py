@@ -14,12 +14,13 @@ ASSETS_FOLDER = gpaf.get_assets_folder_path()
 
 
 image_relative_path = os.path.join(
-        ASSETS_FOLDER, "imgs","tests","test_50","test_50.png")
+        ASSETS_FOLDER, "imgs","Test","CC_6.jpg")
 img = cv.imread(image_relative_path,1)
+img = cv.resize(img, None, fx=10, fy=10)
 # img = cv.resize(img, (440,280))
 
 # cv.imshow("test gray image", cv.cvtColor(img,cv.COLOR_RGB2GRAY))
 
-seg = igs.ImageSegmentation(img).binarization()
+# seg = igs.ImageSegmentation(img).binarization()
 # seg = igs.ImageSegmentation(img).color_segmentation("HSV")
-# roi_img = igs.ImageSegmentation(img).get_region_of_interest()
+roi_img = igs.ImageSegmentation(img).get_region_of_interest()
