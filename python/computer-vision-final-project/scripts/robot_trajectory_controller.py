@@ -90,7 +90,7 @@ class TrajectoryController:
         :param: ts: Control period of time in seconds
         """
         # Define the controller's parameters
-        KP = 1.2
+        KP = 5
         KI = 0.0
         KD = 0.0    
         # Calculate the error signal 
@@ -117,7 +117,7 @@ class TrajectoryController:
         :param: ts: Control period of time in seconds
         """
         # Define the controller's parameters
-        KP = [1,1]
+        KP = [10,10]
         KI = [0,0]
         KD = [0,0]
 
@@ -248,7 +248,10 @@ def main():
         print("Fatal error - No connection")
 
     # Test function
-    test_go_to_goal(clientID)
+    # test_go_to_goal(clientID)
+
+    # Monitoring variables
+    controller = TrajectoryController(clientID).monitoring_variables()
 
     # End connection 
     sim.simxFinish(-1)  

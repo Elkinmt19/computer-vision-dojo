@@ -127,16 +127,16 @@ class KukaYouBotClass:
         # Configuration of the left's motors parameters
         sim.simxSetJointTargetVelocity(
             self.__client,
-            self.motorWheel[0],
-            -wheels_velocity[0],
-            sim.simx_opmode_oneshot_wait
+            self.motorWheel[2],
+            -wheels_velocity[2],
+            sim.simx_opmode_streaming
         )
 
         sim.simxSetJointTargetVelocity(
             self.__client,
-            self.motorWheel[2],
-            -wheels_velocity[2],
-            sim.simx_opmode_oneshot_wait
+            self.motorWheel[0],
+            -wheels_velocity[0],
+            sim.simx_opmode_streaming
         )
 
         # Configuration of the right's motors parameters
@@ -144,15 +144,16 @@ class KukaYouBotClass:
             self.__client,
             self.motorWheel[1],
             -wheels_velocity[1],
-            sim.simx_opmode_oneshot_wait
+            sim.simx_opmode_streaming
         )
 
         sim.simxSetJointTargetVelocity(
             self.__client,
             self.motorWheel[3],
             -wheels_velocity[3],
-            sim.simx_opmode_oneshot_wait
+            sim.simx_opmode_streaming
         )
+
     
 
 def main():

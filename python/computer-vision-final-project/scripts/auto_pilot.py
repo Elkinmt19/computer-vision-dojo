@@ -20,8 +20,8 @@ class AutoPilot:
         self.control_period = 0.1
         self.error = [0.0,0.0,0.0,0.0,0.0,0.0]
         self.it_acum = [0.0,0.0,0.0]
-        self.setpoint = [11.250,-9.89,-1.5] 
-        self.eps = 0.001
+        self.setpoint = [11.5,1.5,0.0] 
+        self.eps = 0.05
 
         # Trajectory pointer
         self.pointer = 0
@@ -30,13 +30,13 @@ class AutoPilot:
         # Define trajectory coordinates
         self.trajectory_coordinates = [
             (11.5,1.5),
-            (8,1),
             (1,0.8),
             (1,-11),
+            (1,-5),
             (5,-5)
         ]
 
-        self.trajectory_orientation = [-np.pi/2,-np.pi/2,0.1,np.pi/2,0.1]
+        self.trajectory_orientation = [-np.pi/2,0.0,np.pi/2,0.0]
 
     def start_connection(self):
         # End connection 
@@ -70,7 +70,7 @@ class AutoPilot:
         last_time = 0
 
         while (1):
-            t0 = time.time()
+            # t0 = time.time()
             # Execute the avoid obstacle method
             # self.avoid_obstacles_controller()
 
@@ -120,13 +120,20 @@ class AutoPilot:
                 angle_condition = (abs(self.error[4]) >= 0 - self.eps and abs(self.error[4]) <= 0 + self.eps)
 
                 if (x_condition and y_condition):
-                    wheel_speed = self.controller.mobile_robot_model(0,0,w)
+                    print(f"Point arrived!!!")
+                    if ((self.pointer == 1) or (self.pointer == 2)):
+                        wheel_speed = self.controller.mobile_robot_model(0,0,-w)
+                    else:
+                        wheel_speed = self.controller.mobile_robot_model(0,0,w)
+
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
                     if (angle_condition):
+                        print(f"Moving on!!! to {self.pointer + 1}")
                         self.pointer += 1
                         self.coor_count += 1
                         self.controller.robot.move_mobile_robot_motors([0,0,0,0])
                 else:
+                    print("moral")
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
 
                 # Special validation
