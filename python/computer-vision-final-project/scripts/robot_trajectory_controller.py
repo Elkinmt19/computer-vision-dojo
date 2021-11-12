@@ -143,8 +143,8 @@ class TrajectoryController:
         distances = cameras["distances"][0]
         objects = cameras["objects"][0]
 
-        X_CENTER_RANGE = (-20,20)
-        MIN_DISTANCE = 1.75
+        X_CENTER_RANGE = (-4.5,4.5)
+        MIN_DISTANCE = 1.78
         
         for i in iter(range(len(x_centers))):
             center_condition = (x_centers[i] >= X_CENTER_RANGE[0]) and (x_centers[i] <= X_CENTER_RANGE[1])
@@ -156,7 +156,7 @@ class TrajectoryController:
                 direction = -1
 
             if (center_condition and dist_condition and object_condition):
-                wheel_speed = self.mobile_robot_model(direction*2.5,0,0)
+                wheel_speed = self.mobile_robot_model(direction*1.5,0,0)
                 self.robot.move_mobile_robot_motors(wheel_speed)
 
     def monitoring_variables(self):

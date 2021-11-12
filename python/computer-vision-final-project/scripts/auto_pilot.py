@@ -4,6 +4,7 @@ import time
 
 # External imports
 import numpy as np
+import cv2 as cv
 
 # Own imports 
 import sim
@@ -11,9 +12,12 @@ import robot_trajectory_controller as rc
 import avoid_obstacles_dl as ao
 
 class AutoPilot:
-    def __init__(self):
+    def __init__(self, show_images):
         # Start the connection with CoppeliaSim
         self.start_connection()
+
+        # Flag to show the cameras images
+        self.show_images = show_images
 
         # Define control variables
         self.controller = rc.TrajectoryController(self.__clientID)
@@ -33,10 +37,18 @@ class AutoPilot:
             (1,0.8),
             (1,-11),
             (4.0124,-11),
-            (4.0124,-3.9314)
+            (4.0124,-3.9314),
+            (8.3751,-5.9002),
+            (8.3751,-7.3502),
+            (8.3751,-8.6752)
         ]
 
-        self.trajectory_orientation = [-np.pi/2,0.0,np.pi/2,0.0,0.0]
+        self.trajectory_orientation = [
+            -np.pi/2,0.0,
+            np.pi/2,0.0,
+            np.pi/2,np.pi/2,
+            np.pi/2,np.pi/2
+        ]
 
     def start_connection(self):
         # End connection 
@@ -58,12 +70,25 @@ class AutoPilot:
         self.controller.robot.camera_buffer()
         self.avoid_obs_controller = ao.AvoidObstaclesDL(
             self.controller.robot,
-            True)
+            False
+        )
         for cm in self.avoid_obs_controller.cameras_threads:
             cm.start()
 
         # for cm in self.avoid_obs_controller.cameras_threads:
         #     cm.join()
+
+    def set_robot_orientation(self,target_angle, last_angle):
+        forward_pointer=0 #default
+        if(target_angle==0 and last_angle == np.pi/2):
+            forward_pointer=0
+        elif(target_angle==-np.pi/2):
+            forward_pointer=1
+        elif(target_angle==0 and last_angle == -np.pi/2):
+            forward_pointer=2
+        elif(target_angle==np.pi/2):
+            forward_pointer=3
+        return forward_pointer
 
     def execute_autopilot(self):
         # Define delay for the control loop
@@ -72,7 +97,7 @@ class AutoPilot:
         while (1):
             # t0 = time.time()
             # Execute the avoid obstacle method
-            self.avoid_obstacles_controller()
+            # self.avoid_obstacles_controller()
 
             # Update setpoint values
             self.setpoint[0:2] = [
@@ -120,7 +145,7 @@ class AutoPilot:
                 angle_condition = (abs(self.error[4]) >= 0 - self.eps and abs(self.error[4]) <= 0 + self.eps)
 
                 if (x_condition and y_condition):
-                    # print(f"Point arrived!!!")
+                    print(f"Point arrived!!!")
                     if ((self.pointer == 1) or (self.pointer == 2)):
                         wheel_speed = self.controller.mobile_robot_model(0,0,-w)
                     else:
@@ -128,31 +153,43 @@ class AutoPilot:
 
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
                     if (angle_condition):
-                        # print(f"Moving on!!! to {self.pointer + 1}")
-                        self.pointer += 1
+                        print(f"Moving on!!! to {self.pointer + 1}")
+                        if (self.coor_count == 0):
+                            last_angle = 0
+                        else:
+                            last_angle = self.trajectory_orientation[self.coor_count-1]
+
+                        self.pointer = self.set_robot_orientation(
+                            self.trajectory_orientation[self.coor_count],
+                            last_angle
+                        )
                         self.coor_count += 1
                         self.controller.robot.move_mobile_robot_motors([0,0,0,0])
                 else:
-                    # print("moral")
+                    print("Going!!!")
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
-
-                # Special validation
-                if (self.pointer >= 4):
-                    self.pointer = 0
 
                 # End condition
                 if (self.coor_count >= len(self.trajectory_coordinates)):
                     break
 
                 # Validation of the avoid obstacles algorithm
-                self.controller.avoid_obstacles(self.avoid_obs_controller.cameras)
-
-                print(self.avoid_obs_controller.cameras)
+                # self.controller.avoid_obstacles(self.avoid_obs_controller.cameras)
 
                 self.it_acum[0] += it_term_k_1[0]           
                 self.it_acum[1] += it_term_k_1[1]
                 self.it_acum[2] += it_term_k_1_angle
                 last_time = time.time()
+
+                # Show cameras images
+                if (self.show_images):
+                    for idx in self.avoid_obs_controller.index_camera:
+                        cv.imshow(
+                            f"Camera {idx}",
+                            self.avoid_obs_controller.camera_image[idx]
+                        )
+                        cv.waitKey(1)
+
             # print(time.time()-t0)
 
         self.stop_connection()
@@ -160,7 +197,7 @@ class AutoPilot:
 
 
 def main():
-    _ = AutoPilot().execute_autopilot()
+    _ = AutoPilot(True).execute_autopilot()
 
 if __name__ == "__main__":
     sys.exit(main())

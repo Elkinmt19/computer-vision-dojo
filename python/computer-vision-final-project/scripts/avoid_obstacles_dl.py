@@ -37,6 +37,10 @@ class AvoidObstaclesDL:
             "objects": []
         }
 
+        # Define variable sto save the images of the cameras
+        self.camera_image = [None]*4
+        self.index_camera = [0]*4
+
         # Define thread's variables for the object detection implementation 
         self.cameras_threads = [thr.Thread(target=self.detect_objects(x)) for x in iter(range(4))]
 
@@ -56,75 +60,81 @@ class AvoidObstaclesDL:
         self.colors = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
     def detect_objects(self, cam):
+        # try:
+        # Preprocessing of the image
+        img = np.array(self.robot.image[cam], dtype = np.uint8)
+        img.resize([self.robot.resolution[cam][0], self.robot.resolution[cam][1], 3])
+        img = np.rot90(img,2)
+        img = np.fliplr(img)
+        img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
+
+        o_h, o_w = img.shape[:2]
+        img = cv.resize(img, None, fx=0.4, fy=0.4)
+        height, width = img.shape[:2]
+
+        # Perform the object detection
+        #! yolo just accepts three sizes [(320,320),(609,609),(416,416)] 
+        blob = cv.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+        self.net.setInput(blob)
+        outs = self.net.forward(self.output_layers) # This variable has all the information of the objects detected
+
+        # Show the result on the screen 
+        class_ids = []
+        confidences = []
+        boxes = []
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if (confidence) > 0.5: # Just show the detections with an accuracy greater than 50%
+                    # Object detected
+                    center_x = int(detection[0] * width)
+                    center_y = int(detection[1] * height)
+                    w = int(detection[2] * width)
+                    h = int(detection[3] * height)
+
+                    # Rectangle coordinates
+                    x = int(center_x - w / 2)
+                    y = int(center_y - h / 2)
+
+                    boxes.append([x, y, w, h])
+                    confidences.append(float(confidence))
+                    class_ids.append(class_id)
+
+        # Sometimes happen that we got more than 1 single box per object, to avoid this the following function is used
+        indexes = cv.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+
+        # Define some important variables for the avoid obstacle algorithm
+        distances = []
+        x_locations = []
+        objects = []
+
+        # Get the objects features and show the image with the objects detected
+        font = cv.FONT_HERSHEY_PLAIN
+        for i in range(len(boxes)):
+            if i in indexes:
+                x, y, w, h = boxes[i]
+                label = str(self.classes[class_ids[i]])
+                color = self.colors[i]
+                cv.rectangle(img, (x, y), (x + w, y + h), color, 2)
+                distances.append(self.CONS_DIST/((x + w)*(y + h)))
+                x_locations.append(x + w/2 - width/2)
+                objects.append(label)
+                cv.putText(img, label, (x, y + 30), font, 1, color, 2)
+        # img = cv.resize(img, [o_h,o_w]) 
+
+        if (self.show_cameras):
+            cv.imshow(f"Image {cam}", img)
+        self.cameras["distances"].append(distances)
+        self.cameras["x_locations"].append(x_locations)
+        self.cameras["objects"].append(objects)
+
+        # Update camera index and image
+        self.camera_image[cam] = img
+        self.index_camera[cam] = cam
         try:
-            # Preprocessing of the image
-            img = np.array(self.robot.image[cam], dtype = np.uint8)
-            img.resize([self.robot.resolution[cam][0], self.robot.resolution[cam][1], 3])
-            img = np.rot90(img,2)
-            img = np.fliplr(img)
-            img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
-
-            o_h, o_w = img.shape[:2]
-            img = cv.resize(img, None, fx=0.4, fy=0.4)
-            height, width = img.shape[:2]
-
-            # Perform the object detection
-            #! yolo just accepts three sizes [(320,320),(609,609),(416,416)] 
-            blob = cv.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
-            self.net.setInput(blob)
-            outs = self.net.forward(self.output_layers) # This variable has all the information of the objects detected
-
-            # Show the result on the screen 
-            class_ids = []
-            confidences = []
-            boxes = []
-            for out in outs:
-                for detection in out:
-                    scores = detection[5:]
-                    class_id = np.argmax(scores)
-                    confidence = scores[class_id]
-                    if (confidence) > 0.5: # Just show the detections with an accuracy greater than 50%
-                        # Object detected
-                        center_x = int(detection[0] * width)
-                        center_y = int(detection[1] * height)
-                        w = int(detection[2] * width)
-                        h = int(detection[3] * height)
-
-                        # Rectangle coordinates
-                        x = int(center_x - w / 2)
-                        y = int(center_y - h / 2)
-
-                        boxes.append([x, y, w, h])
-                        confidences.append(float(confidence))
-                        class_ids.append(class_id)
-
-            # Sometimes happen that we got more than 1 single box per object, to avoid this the following function is used
-            indexes = cv.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
-
-            # Define some important variables for the avoid obstacle algorithm
-            distances = []
-            x_locations = []
-            objects = []
-
-            # Get the objects features and show the image with the objects detected
-            font = cv.FONT_HERSHEY_PLAIN
-            for i in range(len(boxes)):
-                if i in indexes:
-                    x, y, w, h = boxes[i]
-                    label = str(self.classes[class_ids[i]])
-                    color = self.colors[i]
-                    cv.rectangle(img, (x, y), (x + w, y + h), color, 2)
-                    distances.append(self.CONS_DIST/((x + w)*(y + h)))
-                    x_locations.append(x + w/2 - width/2)
-                    objects.append(label)
-                    cv.putText(img, label, (x, y + 30), font, 1, color, 2)
-            # img = cv.resize(img, [o_h,o_w]) 
-
-            if (self.show_cameras):
-                cv.imshow(f"Image {cam}", img)
-            self.cameras["distances"].append(distances)
-            self.cameras["x_locations"].append(x_locations)
-            self.cameras["objects"].append(objects)
+            pass
         except:
             print("An error just happen!!!")
 
