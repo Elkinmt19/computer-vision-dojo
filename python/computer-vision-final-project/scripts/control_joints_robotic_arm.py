@@ -63,12 +63,37 @@ motorError[4],motorArm[4]=sim.simxGetObjectHandle(clientID,'youBotArmJoint4#2',s
 gripperError[0],motorGripper[0]=sim.simxGetObjectHandle(clientID,'youBotGripperJoint1#2',sim.simx_opmode_blocking)
 gripperError[1],motorGripper[1]=sim.simxGetObjectHandle(clientID,'youBotGripperJoint2#2',sim.simx_opmode_blocking)
 
-moveJoint(motorArm[2],55,0.1)
-moveJoint(motorArm[1],38,0.1)
-closeGripper()
-moveJoint(motorArm[0],180,0.1)
-openGripper()
+def move_yellow_block():
+    moveJoint(motorArm[2],60,0.01)
+    moveJoint(motorArm[3],62,0.01)
+    moveJoint(motorArm[1],36,0.01)
+    closeGripper()
+    moveJoint(motorArm[0],180,0.01)
+    openGripper()
+    moveJoint(motorArm[0],-1.8,0.01)
 
+def move_blue_block():
+    
+    moveJoint(motorArm[2],52,0.01)
+    moveJoint(motorArm[3],50,0.01)
+    moveJoint(motorArm[1],45,0.01)
+    closeGripper()
+    moveJoint(motorArm[0],180,0.01)
+    openGripper()
+    moveJoint(motorArm[0],-1.8,0.01)
+
+def move_red_block():
+    moveJoint(motorArm[2],35,0.01)
+    moveJoint(motorArm[3],45,0.01)
+    moveJoint(motorArm[1],58,0.01)
+    closeGripper()
+    moveJoint(motorArm[0],180,0.01)
+    openGripper()
+    moveJoint(motorArm[0],-1.8,0.01)
+
+move_yellow_block()
+move_blue_block()
+move_red_block()
     
 cv2.destroyAllWindows()
 #Finalizo conexión

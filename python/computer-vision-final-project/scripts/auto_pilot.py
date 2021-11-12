@@ -46,16 +46,17 @@ class AutoPilot:
         for cm in self.avoid_obs_controller.cameras_threads:
             cm.start()
 
-        for cm in self.avoid_obs_controller.cameras_threads:
-            cm.join()
+        # for cm in self.avoid_obs_controller.cameras_threads:
+        #     cm.join()
 
     def execute_autopilot(self):
         # Define delay for the control loop
         last_time = 0
 
         while (1):
+            t0 = time.time()
             # Execute the avoid obstacle method
-            # self.avoid_obstacles_controller()
+            self.avoid_obstacles_controller()
 
             # Only proceed to control calculation in correct sample time multiple
             sample_time_condition = time.time() - last_time >= self.control_period
@@ -81,10 +82,14 @@ class AutoPilot:
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
 
                 # Validation of the avoid obstacles algorithm
-                # self.controller.avoid_obstacles(self.avoid_obs_controller.cameras)
+                self.controller.avoid_obstacles(self.avoid_obs_controller.cameras)
+
+                print(self.avoid_obs_controller.cameras)
 
                 self.it_acum[0] += it_term_k_1[0]           
                 self.it_acum[1] += it_term_k_1[1]
+                last_time = time.time()
+            print(time.time()-t0)
 
         self.start_connection()
 

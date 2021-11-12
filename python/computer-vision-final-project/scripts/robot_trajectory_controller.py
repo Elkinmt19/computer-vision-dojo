@@ -31,9 +31,9 @@ class TrajectoryController:
         """
         
         # Robot's parameters
-        L = 0.23506600000000002
-        l = 0.104311
-        R = 0.049984
+        L = 1
+        l = 0
+        R = 1
 
         right_f_vel = (-vx + vy + (L + l)*w)/R
         left_f_vel = (vx + vy - (L + l)*w)/R
@@ -117,7 +117,7 @@ class TrajectoryController:
         :param: ts: Control period of time in seconds
         """
         # Define the controller's parameters
-        KP = [1.0,0.7]
+        KP = [1,1]
         KI = [0,0]
         KD = [0,0]
 
@@ -142,18 +142,20 @@ class TrajectoryController:
         x_centers = cameras["x_locations"][0]
         distances = cameras["distances"][0]
 
-        X_CENTER_RANGE = (-5,5)
-        MIN_DISTANCE = 1.0303060861173299
-
+        X_CENTER_RANGE = (-20,20)
+        MIN_DISTANCE = 1.75
+        
         for i in iter(range(len(x_centers))):
             center_condition = (x_centers[i] >= X_CENTER_RANGE[0]) and (x_centers[i] <= X_CENTER_RANGE[1])
             dist_condition = distances[i] <= MIN_DISTANCE
-
-            direction = -(x_centers[i]/abs(x_centers[i]))
+            try:
+                direction = -(x_centers[i]/abs(x_centers[i]))
+            except Exception:
+                direction = -1
 
             if (center_condition and dist_condition):
                 print("moral")
-                wheel_speed = self.mobile_robot_model(direction*0.5,0,0)
+                wheel_speed = self.mobile_robot_model(direction*2.5,0,0)
                 self.robot.move_mobile_robot_motors(wheel_speed)
 
     def monitoring_variables(self):

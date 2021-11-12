@@ -2,6 +2,7 @@
 import os
 import sys 
 import threading as thr
+from time import time
 
 # External imports 
 import cv2 as cv
@@ -139,6 +140,7 @@ def main():
 
 
     while (1):
+        t0 = time()
         robot.camera_buffer()
         controller = AvoidObstaclesDL(robot, True)
         for cm in controller.cameras_threads:
@@ -152,7 +154,7 @@ def main():
         if (cv.waitKey(1) & 0xFF == ord('q')):
             print("We are MELOS!!!")
             break
-
+        print(time() - t0)
     # End connection 
     sim.simxFinish(-1)
 
