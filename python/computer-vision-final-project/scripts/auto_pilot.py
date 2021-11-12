@@ -32,11 +32,11 @@ class AutoPilot:
             (11.5,1.5),
             (1,0.8),
             (1,-11),
-            (1,-5),
-            (5,-5)
+            (4.0124,-11),
+            (4.0124,-3.9314)
         ]
 
-        self.trajectory_orientation = [-np.pi/2,0.0,np.pi/2,0.0]
+        self.trajectory_orientation = [-np.pi/2,0.0,np.pi/2,0.0,0.0]
 
     def start_connection(self):
         # End connection 
@@ -155,7 +155,7 @@ class AutoPilot:
                 last_time = time.time()
             # print(time.time()-t0)
 
-        self.start_connection()
+        self.stop_connection()
 
 
 
