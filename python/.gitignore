@@ -1,6 +1,8 @@
+# Some custom ignores
 *.py[cod]
 *.zip
 yolo
+num1
 
 # C extensions
 *.so

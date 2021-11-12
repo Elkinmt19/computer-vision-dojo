@@ -37,7 +37,7 @@ class CharactersDatasetPreprocessing:
 
         # Create a new excel file with a new sheet to work with
         path_dataset_file = os.path.join(
-            ASSETS_FOLDER, "xlsx", "characters_dataset.xlsx")
+            ASSETS_FOLDER, "xlsx", "letters_dataset.xlsx")
         self.workbook = xlsxwriter.Workbook(path_dataset_file)
         self.worksheet = self.workbook.add_worksheet('characters-data')
         self.worksheet_pca = self.workbook.add_worksheet('characters-data_pca')
@@ -45,7 +45,7 @@ class CharactersDatasetPreprocessing:
     def get_character_paths(self, character):
         # Universal path depending of the extention of the image
         path_characters = os.path.join(
-            ASSETS_FOLDER, "imgs", f"letters/{character}/*.jpg")
+            ASSETS_FOLDER, "imgs", f"bike_characters/{character}/*.jpg")
 
         # Function to find the images of the dataset
         self.img_names = glob(path_characters)
@@ -66,31 +66,12 @@ class CharactersDatasetPreprocessing:
 
         return xmean, ymean
 
-    def get_invariant_moments(self, M, cx, cy):
-        # Calculate the invariant moments on translational transformations
-        u11 = M['m11'] - cx*M['m01']
-        u20 = M['m20'] - cx*M['m10']
-        u02 = M['m02'] - cy*M['m01']
-        u21 = M['m21'] - 2*cx*M['m11'] - cy*M['m20'] - 2*(cx**2)*M['m01']
-        u12 = M['m12'] - 2*cy*M['m11'] - cx*M['m02'] - 2*(cy**2)*M['m10']
-        u30 = M['m30'] - 3*cx*M['m20'] + 2*(cx**2)*M['m10']
-        u03 = M['m03'] - 3*cy*M['m02'] + 2*(cy**2)*M['m01']
-
-        # Calculate the invariant moments on small transformations
-        I1 = (1/M['m00']**4)*(u20*u02 - u11**2)
-        I2 = (1/M['m00']**10)*((-u30**2)*(u03**2) + 6*u30*u21*u12*u03 - 4*u30*(u12**3) - 4*(u21**3)*u03 + 3*(u21**2)*(u12**2))
-        I3 = (1/M['m00']**7)*(u20*u21*u03 - u20*(u12**2) - u11*u30*u03 + u11*u21*u12 + u02*u30*u12 - u02*(u21**2))
-        I4 = (1/M['m00']**11)*((-u20**3)*(u03**2) + 6*(u20**2)*u11*u12*u03 - 3*(u20**2)*u02*(u12**2) - 6*u20*(u11**2)*u21*u03\
-            - 6*u20*(u11**2)*(u12**2) + 12*u20*u11*u02*u21*u12 - 3*u20*(u02**2)*(u21**2) + 2*(u11**3)*u30*u03 + 6*(u11**2)*u02*u30*u12\
-            - 6*(u11**2)*u02*(u21**2) + 6*u11*(u02**2)*u30*u21 - (u02**3)*(u30**2)) 
-
-        return I1, I2, I3, I4
-
     def character_data_preprocessing(self, character_class):
         erode_kernel = cv.getStructuringElement(cv.MORPH_RECT , (2,2))
         dilate_kernel = cv.getStructuringElement(cv.MORPH_RECT, (2,2))
         for fn in self.img_names:
             img = cv.imread(fn, 1)
+
             gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
             blur = cv.medianBlur(gray,5)
 
@@ -143,9 +124,6 @@ class CharactersDatasetPreprocessing:
                         RA = w/float(h)
                         Hu = cv.HuMoments(M)
 
-                        # Calculate additional moments 
-                        I1, I2, I3, I4 = self.get_invariant_moments(M, cx, cy)
-
                         # Calculate additional features
                         diago_mean = 0
                         diago_mean1 = 0
@@ -158,6 +136,10 @@ class CharactersDatasetPreprocessing:
                         x_mean_half_l = 0
                         y_mean_half_u = 0
                         x_mean_half_u = 0
+                        y_mean_start = 0
+                        x_mean_start = 0
+                        y_mean_last = 0
+                        x_mean_last = 0
                         for i in iter(range(binary_image_res.shape[0])):
                             for j in iter(range(binary_image_res.shape[1])):
                                 if (i == j):
@@ -177,7 +159,15 @@ class CharactersDatasetPreprocessing:
                                 if (i == int((binary_image_res.shape[0]*3)/4)):
                                     y_mean_half_u += binary_image_res[i,j]
                                 if (j == int((binary_image_res.shape[1]*3)/4)):
-                                    x_mean_half_u += binary_image_res[i,j] 
+                                    x_mean_half_u += binary_image_res[i,j]
+                                if (i == 0):
+                                    y_mean_start += binary_image_res[i,j]
+                                if (j == 0):
+                                    x_mean_start += binary_image_res[i,j] 
+                                if (i == int(binary_image_res.shape[0]-1)):
+                                    y_mean_last += binary_image_res[i,j]
+                                if (j == int(binary_image_res.shape[1]-1)):
+                                    x_mean_last += binary_image_res[i,j]  
 
                         # Vector with the object's features
                         VectorCarac = np.array([
@@ -194,15 +184,16 @@ class CharactersDatasetPreprocessing:
                             diago_mean4,
                             corner_x,
                             corner_y,
-                            I2,
-                            I3,
-                            I4,
                             y_mean,
                             x_mean,
                             y_mean_half_l,
                             x_mean_half_l,
                             y_mean_half_u,
                             x_mean_half_u,
+                            y_mean_start,
+                            x_mean_start,
+                            y_mean_last,
+                            x_mean_last,
                             Hu[0][0],
                             Hu[1][0],
                             Hu[2][0],
@@ -235,7 +226,7 @@ class CharactersDatasetPreprocessing:
         X = ss.fit_transform(self.characters_features)
 
         # Perform the PCA analysis 
-        pca = decomposition.PCA(n_components=23)
+        pca = decomposition.PCA(n_components=30)
         pca.fit(X)
 
         # Calculate the scores values
@@ -248,8 +239,8 @@ class CharactersDatasetPreprocessing:
 
         # Save important models
         if (self.model_flag):
-            joblib.dump(ss, self.models_path("model_scaling_all_characters.pkl"))
-            joblib.dump(pca, self.models_path("model_pca_all_characters.pkl"))
+            joblib.dump(ss, self.models_path("model_scaling_all_letters.pkl"))
+            joblib.dump(pca, self.models_path("model_pca_all_letters.pkl"))
 
         # Explained variance for each PC
         explained_variance = pca.explained_variance_ratio_
@@ -281,27 +272,33 @@ class CharactersDatasetPreprocessing:
         return model_path
 
     def complete_characters_dataset(self):
-        character_list = [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "P",
-            "R",
-            "S",
-            "T",
-            "V",
-            "X",
-            "Z"
+        character_list_numbers = [
+            "0","1",
+            "2","3",
+            "4","5",
+            "6","7",
+            "8","9"
         ]
-        for i in iter(range(10)):
+
+        character_list_letters = [
+            "A","B",
+            "C","D",
+            "E","F",
+            "G","H",
+            "I","J",
+            "K","L",
+            "M","N",
+            "O","P",
+            "Q","R",
+            "S","T",
+            "U","V",
+            "W","X",
+            "Y","Z"
+        ]
+
+        for i in iter(range(len(character_list_letters))):
             # Get the number paths
-            self.get_character_paths(character_list[i])
+            self.get_character_paths(character_list_letters[i])
 
             # Process the data of the character
             self.character_data_preprocessing(i)
