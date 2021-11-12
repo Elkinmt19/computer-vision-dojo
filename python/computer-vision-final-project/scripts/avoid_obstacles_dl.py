@@ -33,7 +33,8 @@ class AvoidObstaclesDL:
         # Define variables for the avoid obstacle algorithm 
         self.cameras = {
             "x_locations": [],
-            "distances": []
+            "distances": [],
+            "objects": []
         }
 
         # Define thread's variables for the object detection implementation 
@@ -103,6 +104,7 @@ class AvoidObstaclesDL:
             # Define some important variables for the avoid obstacle algorithm
             distances = []
             x_locations = []
+            objects = []
 
             # Get the objects features and show the image with the objects detected
             font = cv.FONT_HERSHEY_PLAIN
@@ -114,6 +116,7 @@ class AvoidObstaclesDL:
                     cv.rectangle(img, (x, y), (x + w, y + h), color, 2)
                     distances.append(self.CONS_DIST/((x + w)*(y + h)))
                     x_locations.append(x + w/2 - width/2)
+                    objects.append(label)
                     cv.putText(img, label, (x, y + 30), font, 1, color, 2)
             # img = cv.resize(img, [o_h,o_w]) 
 
@@ -121,6 +124,7 @@ class AvoidObstaclesDL:
                 cv.imshow(f"Image {cam}", img)
             self.cameras["distances"].append(distances)
             self.cameras["x_locations"].append(x_locations)
+            self.cameras["objects"].append(objects)
         except:
             print("An error just happen!!!")
 

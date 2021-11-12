@@ -141,6 +141,7 @@ class TrajectoryController:
     def avoid_obstacles(self, cameras):
         x_centers = cameras["x_locations"][0]
         distances = cameras["distances"][0]
+        objects = cameras["objects"][0]
 
         X_CENTER_RANGE = (-20,20)
         MIN_DISTANCE = 1.75
@@ -148,13 +149,13 @@ class TrajectoryController:
         for i in iter(range(len(x_centers))):
             center_condition = (x_centers[i] >= X_CENTER_RANGE[0]) and (x_centers[i] <= X_CENTER_RANGE[1])
             dist_condition = distances[i] <= MIN_DISTANCE
+            object_condition = objects[i] != "table"
             try:
                 direction = -(x_centers[i]/abs(x_centers[i]))
             except Exception:
                 direction = -1
 
-            if (center_condition and dist_condition):
-                print("moral")
+            if (center_condition and dist_condition and object_condition):
                 wheel_speed = self.mobile_robot_model(direction*2.5,0,0)
                 self.robot.move_mobile_robot_motors(wheel_speed)
 

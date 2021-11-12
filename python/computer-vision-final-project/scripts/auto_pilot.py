@@ -58,7 +58,7 @@ class AutoPilot:
         self.controller.robot.camera_buffer()
         self.avoid_obs_controller = ao.AvoidObstaclesDL(
             self.controller.robot,
-            False)
+            True)
         for cm in self.avoid_obs_controller.cameras_threads:
             cm.start()
 
@@ -72,7 +72,7 @@ class AutoPilot:
         while (1):
             # t0 = time.time()
             # Execute the avoid obstacle method
-            # self.avoid_obstacles_controller()
+            self.avoid_obstacles_controller()
 
             # Update setpoint values
             self.setpoint[0:2] = [
@@ -120,7 +120,7 @@ class AutoPilot:
                 angle_condition = (abs(self.error[4]) >= 0 - self.eps and abs(self.error[4]) <= 0 + self.eps)
 
                 if (x_condition and y_condition):
-                    print(f"Point arrived!!!")
+                    # print(f"Point arrived!!!")
                     if ((self.pointer == 1) or (self.pointer == 2)):
                         wheel_speed = self.controller.mobile_robot_model(0,0,-w)
                     else:
@@ -128,12 +128,12 @@ class AutoPilot:
 
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
                     if (angle_condition):
-                        print(f"Moving on!!! to {self.pointer + 1}")
+                        # print(f"Moving on!!! to {self.pointer + 1}")
                         self.pointer += 1
                         self.coor_count += 1
                         self.controller.robot.move_mobile_robot_motors([0,0,0,0])
                 else:
-                    print("moral")
+                    # print("moral")
                     self.controller.robot.move_mobile_robot_motors(wheel_speed)
 
                 # Special validation
@@ -145,9 +145,9 @@ class AutoPilot:
                     break
 
                 # Validation of the avoid obstacles algorithm
-                # self.controller.avoid_obstacles(self.avoid_obs_controller.cameras)
+                self.controller.avoid_obstacles(self.avoid_obs_controller.cameras)
 
-                # print(self.avoid_obs_controller.cameras)
+                print(self.avoid_obs_controller.cameras)
 
                 self.it_acum[0] += it_term_k_1[0]           
                 self.it_acum[1] += it_term_k_1[1]
