@@ -3,10 +3,11 @@ import sys
 import cv2
 import numpy as np
 import time
+
 def closeGripper():
     sim.simxSetJointTargetVelocity(clientID,motorGripper[1],0.04,sim.simx_opmode_streaming)
     sim.simxSetJointTargetPosition(clientID,motorGripper[0],getCurrentAngle(motorGripper[1])*-0.5,sim.simx_opmode_streaming)
-    time.sleep(5)
+    time.sleep(6)
 def openGripper():
     sim.simxSetJointTargetVelocity(clientID,motorGripper[1],-0.04,sim.simx_opmode_streaming)
     sim.simxSetJointTargetPosition(clientID,motorGripper[0],getCurrentAngle(motorGripper[1])*-0.5,sim.simx_opmode_streaming)
@@ -63,10 +64,22 @@ motorError[4],motorArm[4]=sim.simxGetObjectHandle(clientID,'youBotArmJoint4#2',s
 gripperError[0],motorGripper[0]=sim.simxGetObjectHandle(clientID,'youBotGripperJoint1#2',sim.simx_opmode_blocking)
 gripperError[1],motorGripper[1]=sim.simxGetObjectHandle(clientID,'youBotGripperJoint2#2',sim.simx_opmode_blocking)
 
+
+
+
+
+# creat cubes 
+cubes = [0,1,2]
+cube_error = [False, False, False]
+for i in iter(range(len(cubes))):
+    cube_error[i], cubes[i] = sim.simxGetObjectHandle(clientID,f'Rectangle13#{i+2}',sim.simx_opmode_blocking)
+
+   
+    
 def move_yellow_block():
+    moveJoint(motorArm[1],36,0.01)
     moveJoint(motorArm[2],60,0.01)
     moveJoint(motorArm[3],62,0.01)
-    moveJoint(motorArm[1],36,0.01)
     closeGripper()
     moveJoint(motorArm[0],180,0.01)
     openGripper()
@@ -91,10 +104,10 @@ def move_red_block():
     openGripper()
     moveJoint(motorArm[0],-1.8,0.01)
 
-move_yellow_block()
-move_blue_block()
-move_red_block()
-    
+# move_blue_block()
+# move_red_block()
+# move_yellow_block()
+
 cv2.destroyAllWindows()
 #Finalizo conexión
 sim.simxFinish(-1)

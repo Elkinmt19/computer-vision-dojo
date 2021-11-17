@@ -90,7 +90,7 @@ class TrajectoryController:
         :param: ts: Control period of time in seconds
         """
         # Define the controller's parameters
-        KP = 5
+        KP = 1.5
         KI = 0.0
         KD = 0.0    
         # Calculate the error signal 
@@ -117,7 +117,7 @@ class TrajectoryController:
         :param: ts: Control period of time in seconds
         """
         # Define the controller's parameters
-        KP = [10,10]
+        KP = [6,6]
         KI = [0,0]
         KD = [0,0]
 
@@ -143,7 +143,7 @@ class TrajectoryController:
         distances = cameras["distances"][0]
         objects = cameras["objects"][0]
 
-        X_CENTER_RANGE = (-4.5,4.5)
+        X_CENTER_RANGE = (-5,5)
         MIN_DISTANCE = 1.78
         
         for i in iter(range(len(x_centers))):
@@ -156,7 +156,7 @@ class TrajectoryController:
                 direction = -1
 
             if (center_condition and dist_condition and object_condition):
-                wheel_speed = self.mobile_robot_model(direction*1.5,0,0)
+                wheel_speed = self.mobile_robot_model(direction*1.2,0,0)
                 self.robot.move_mobile_robot_motors(wheel_speed)
 
     def monitoring_variables(self):
