@@ -5,7 +5,7 @@ yolo
 num1
 
 # C extensions
-*.so
+#*.so
 
 # Packages
 *.egg
